@@ -12,6 +12,7 @@ import connectDB from './database/database';
 import { HTTPSTATUS } from './config/http.config';
 import { errorHandler } from './middleware/errorHandler';
 import { asyncHandler } from './middleware/asyncHandler';
+import authRoutes from './modules/auth/auth.routes';
 
 const app = express();
 //============= Middlewares
@@ -35,6 +36,7 @@ app.get("/", asyncHandler(async (req: Request, res: Response, next: NextFunction
 );
 
 //============= Routes
+app.use('/api/auth', authRoutes);
 
 //============= Error Handler
 app.use(errorHandler);
