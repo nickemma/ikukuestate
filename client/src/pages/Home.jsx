@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { FaArrowRight } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+
 
 export default function Home() {
   const [formData, setFormData] = useState({
@@ -54,11 +56,12 @@ export default function Home() {
           </h>
         </div>
         <div className="absolute flex items-center space-x-4 bottom-8 left-[20rem]">
-          <h1 className="text-3xl font-bold text-white">Explore Listings</h1>
-          <a href="/buy" className="text-3xl text-white">
-            <FaArrowRight className="text-white" />
-          </a>
-        </div>
+  <Link to="/buy" className="flex items-center space-x-2">
+    <h1 className="text-3xl font-bold text-white">Explore Listings</h1>
+    <FaArrowRight className="text-3xl text-white" />
+  </Link>
+</div>
+
       </div>
 
   {/* Global Region */}
@@ -70,9 +73,11 @@ export default function Home() {
             <span className="italic">Wherever</span> you’re going, we can take{' '}
             <span className="italic">you there</span>
           </h>
+          <Link to="/region"> 
           <button className="h-14 bg-red-600 w-[20rem] text-white text-[1.5rem] ml-[14rem] mt-4">
             Discover Global Regions
           </button>
+          </Link>
         </div>
 
         {/* Image Boxes */}
@@ -88,13 +93,12 @@ export default function Home() {
             </div>
             <h2 className="mt-4 text-2xl font-bold  mr-[22.4rem]">LAGOS STATE</h2>
             <div className="mt-2  mr-[26rem]">
-              <a
-                href="/buy"
+               <Link to="/region"
                 className="flex items-center justify-center space-x-2 text-red-600 group"
               >
                 <span className="text-lg font-semibold">Discover</span>
                 <FaArrowRight className="transition-transform duration-300 ease-in-out group-hover:-translate-x-1" />
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -109,13 +113,12 @@ export default function Home() {
             </div>
             <h2 className="mt-4 text-2xl font-bold mr-[22rem]">RIVERS STATE</h2>
             <div className="mt-2 mr-[25.5rem]">
-              <a
-                href="/buy"
+               <Link to="/region"
                 className="flex items-center justify-center space-x-2 text-red-600 group"
               >
                 <span className="text-lg font-semibold">Discover</span>
                 <FaArrowRight className="transition-transform duration-300 ease-in-out group-hover:-translate-x-1" />
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -130,13 +133,12 @@ export default function Home() {
             </div>
             <h2 className="mt-4 text-2xl font-bold mr-[24rem]">EDO STATE</h2>
             <div className="mt-2 mr-[25.6rem]">
-              <a
-                href="/buy"
+              <Link to="/region" 
                 className="flex items-center justify-center space-x-2 text-red-600 group"
               >
                 <span className="text-lg font-semibold">Discover</span>
                 <FaArrowRight className="transition-transform duration-300 ease-in-out group-hover:-translate-x-1" />
-              </a>
+                </Link>
             </div>
           </div>
         </div>
@@ -198,9 +200,21 @@ export default function Home() {
       <div className="px-6 mt-[10rem]">
         <div className="flex items-center justify-between w-full h-[100vh] px-6">
           {/* Image Section */}
-          <div className="w-1/2 h-full">
-            <img src="/forever.jpg" alt="forever" className="object-cover w-full h-full" />
-          </div>
+          <div className="relative w-1/2 h-full">
+  <img src="/forever.jpg" alt="forever" className="object-cover w-full h-full" />
+  {/* Black overlay */}
+  <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+  
+  <div className="absolute inset-0 flex flex-col items-start justify-center pl-16 text-white mt-[24rem]">
+    <h1 className="text-[2.2rem] leading-tight">
+      Real estate isn’t <br /> just business. <br />
+      <span className="italic">It’s personal.</span>
+    </h1>
+    <p className="mt-6 text-[2.5rem] font-bold">LET’S CONNECT.</p>
+  </div>
+</div>
+
+
 
           {/* Form Section */}
           <div className="flex flex-col justify-center w-1/2 h-full space-y-6">
