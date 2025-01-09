@@ -37,7 +37,7 @@ export default function Home() {
     } else {
       // Logic to handle form submission
       alert('Form Submitted');
-      // You can replace this with your actual submission logic (e.g., sending data to a server)
+     
     }
   };
 
@@ -190,14 +190,10 @@ export default function Home() {
     </div>
   </div>
 </div>
-
-
-
-
-      
+  
 
       {/* Lets Connect Section */}
-      <div className="px-6 mt-[10rem]">
+      <div className=" mt-[10rem]">
         <div className="flex items-center justify-between w-full h-[100vh] px-6">
           {/* Image Section */}
           <div className="relative w-1/2 h-full">
@@ -271,7 +267,7 @@ export default function Home() {
                   className="w-full px-4 py-3 font-bold border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
                 >
                   <option>Select an Agent</option>
-                  {/* Add your agent options here */}
+                  
                 </select>
               </div>
               <input
