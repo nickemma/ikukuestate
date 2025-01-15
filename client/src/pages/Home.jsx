@@ -1,9 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { FaArrowRight } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import Slider from 'react-slick';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { FaGreaterThan } from "react-icons/fa6";
+import { FaLessThan } from "react-icons/fa6";
+
 
 
 export default function Home() {
+
+  const sliderRef = useRef(null);
+
+  const settings = {
+    dots: false, // Disable dots
+    infinite: false, // Stop at the last slide
+    speed: 500, // Animation speed
+    slidesToShow: 3, // Show one slide at a time
+    slidesToScroll: 1, // Scroll one slide at a time
+    arrows: false, // Disable default arrows
+  };
+
+  
+// Custom navigation handlers
+const handlePrev = () => {
+  sliderRef.current.slickPrev();
+};
+
+const handleNext = () => {
+  sliderRef.current.slickNext();
+};
+  
+  const Customsign = ({ className, style, onClick, icon }) => (
+    <div
+      className={`${className} custom-arrow`}
+      style={{
+        ...style,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        color: "white",
+        fontSize: "20px",
+      }}
+      onClick={onClick}
+    >
+      {icon}
+    </div>
+  );
+  
+  const images = [
+    { src: '/video 1.jpg', state: 'LAGOS STATE' },
+    { src: '/video 2.jpg', state: 'RIVERS STATE' },
+    { src: '/video 3.jpg', state: 'EDO STATE' },
+    { src: '/image1.jpg', state: 'OGUN STATE' },
+    { src: '/image5.jpg', state: 'ABIA STATE' },
+    { src: '/image6.jpg', state: 'IMO STATE' },
+    { src: '/image2.jpg', state: 'KANO STATE' },
+  ];
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -41,6 +96,9 @@ export default function Home() {
     }
   };
 
+
+  console.log('Home component is rendering');
+  
   return (
     <>
       {/* Hero Section */}
@@ -64,88 +122,68 @@ export default function Home() {
 
       </div>
 
-  {/* Global Region */}
-  <div className="px-6 mt-[5rem]">
-        <h className="text-red-500 text-[2rem] ml-[22rem]">GLOBAL REGIONS</h>
-        <br />
-        <div className="flex ml-[22rem]">
-          <h className="text-[2rem]">
-            <span className="italic">Wherever</span> you’re going, we can take{' '}
-            <span className="italic">you there</span>
-          </h>
-          <Link to="/region"> 
+    <div className="px-6 mt-[5rem] bg-gray-100">
+    <h2 className="text-red-500 text-[2rem] ml-[22rem]">GLOBAL REGIONS</h2>
+      <div className="flex ml-[22rem] mt-4">
+        <h3 className="text-[2rem]">
+          <span className="italic">Wherever</span> you’re going, we can take{' '}
+          <span className="italic">you there</span>
+        </h3>
+        <Link to="/region">
           <button className="h-14 bg-red-600 w-[20rem] text-white text-[1.5rem] ml-[14rem] mt-4">
             Discover Global Regions
           </button>
-          </Link>
-        </div>
-
-        {/* Image Boxes */}
-        <div className="flex justify-center p-10 space-x-6">
-          {/* Box 1 */}
-          <div className="w-[32rem] text-center">
-            <div className="w-full h-[38rem] overflow-hidden bg-white rounded-md">
-              <img
-                src="/video 1.jpg"
-                alt="Image 1"
-                className="object-cover w-full h-full transition-transform duration-300 ease-in-out hover:scale-105"
-              />
-            </div>
-            <h2 className="mt-4 text-2xl font-bold  mr-[22.4rem]">LAGOS STATE</h2>
-            <div className="mt-2  mr-[26rem]">
-               <Link to="/region"
-                className="flex items-center justify-center space-x-2 text-red-600 group"
-              >
-                <span className="text-lg font-semibold">Discover</span>
-                <FaArrowRight className="transition-transform duration-300 ease-in-out group-hover:-translate-x-1" />
-              </Link>
-            </div>
-          </div>
-
-          {/* Box 2 */}
-          <div className="w-[32rem] text-center">
-            <div className="w-full h-[38rem] overflow-hidden bg-white rounded-md">
-              <img
-                src="/video 2.jpg"
-                alt="Image 2"
-                className="object-cover w-full h-full transition-transform duration-300 ease-in-out hover:scale-105"
-              />
-            </div>
-            <h2 className="mt-4 text-2xl font-bold mr-[22rem]">RIVERS STATE</h2>
-            <div className="mt-2 mr-[25.5rem]">
-               <Link to="/region"
-                className="flex items-center justify-center space-x-2 text-red-600 group"
-              >
-                <span className="text-lg font-semibold">Discover</span>
-                <FaArrowRight className="transition-transform duration-300 ease-in-out group-hover:-translate-x-1" />
-              </Link>
-            </div>
-          </div>
-
-          {/* Box 3 */}
-          <div className="w-[32rem] text-center">
-            <div className="w-full h-[38rem] overflow-hidden bg-white rounded-md">
-              <img
-                src="/video 3.jpg"
-                alt="Image 3"
-                className="object-cover w-full h-full transition-transform duration-300 ease-in-out hover:scale-105"
-              />
-            </div>
-            <h2 className="mt-4 text-2xl font-bold mr-[24rem]">EDO STATE</h2>
-            <div className="mt-2 mr-[25.6rem]">
-              <Link to="/region" 
-                className="flex items-center justify-center space-x-2 text-red-600 group"
-              >
-                <span className="text-lg font-semibold">Discover</span>
-                <FaArrowRight className="transition-transform duration-300 ease-in-out group-hover:-translate-x-1" />
-                </Link>
-            </div>
-          </div>
-        </div>
+        </Link>
       </div>
 
+      <Slider ref={sliderRef} {...settings} className="mt-10">
+        {images.map((item, index) => (
+          <div key={index} className="px-2 text-center">
+            <div className="w-full h-[38rem] overflow-hidden bg-white rounded-md">
+              <img
+                src={item.src}
+                alt={item.state}
+                className="object-cover w-full h-full transition-transform duration-300 ease-in-out hover:scale-105"
+              />
+            </div>
+            <h2 className="mt-4 text-2xl font-bold mr-[27rem]">{item.state}</h2>
+            
+            <div className="mt-2">
+              <Link
+                to="/region"
+                className="flex items-center justify-center space-x-2 text-red-600 group"
+              >
+                <div className='flex mr-[30rem]'>   
+                <span className="text-lg font-semibold ">Discover</span>
+                <FaArrowRight className="mt-2 transition-transform duration-300 ease-in-out group-hover:-translate-x-1" />
+                </div>
+              </Link>
+            </div>
+            
+          </div>
+        ))}
+      </Slider>
+
+      {/* Custom arrows below images */}
+      <div className="flex justify-center mt-4 space-x-4">
+        <button
+          className="p-2"
+          onClick={handlePrev}
+        >
+          <FaLessThan size={20} />
+        </button>
+        <button
+          className="p-2 "
+          onClick={handleNext}
+        >
+          <FaGreaterThan size={20} />
+        </button>
+      </div>
+    </div>
+
+
  {/* Discover listing */}
-      <div className="px-6">
+      <div className="px-6 mt-10">
   <h1 className="font-bold text-[3rem] ml-[8rem]">Popular Categories</h1>
   <h2 className="text-[2rem] ml-[8rem]">Find the right property for you</h2>
 
@@ -209,8 +247,6 @@ export default function Home() {
     <p className="mt-6 text-[2.5rem] font-bold">LET’S CONNECT.</p>
   </div>
 </div>
-
-
 
           {/* Form Section */}
           <div className="flex flex-col justify-center w-1/2 h-full space-y-6">
@@ -311,6 +347,12 @@ export default function Home() {
             </form>
           </div>
         </div>
+        
+
+        
+
+
+        
       </div>
     </>
   );

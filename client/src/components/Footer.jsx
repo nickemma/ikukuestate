@@ -63,13 +63,14 @@ className='w-40 bg-red-600 h-[7rem] font-bold ml-28'>LOGO
 </div>
 
 
-
- 
-
+    </div>
 
 
 
-</div>
+
+
+
+
 
 
 
