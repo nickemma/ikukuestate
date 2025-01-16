@@ -70,8 +70,6 @@ const Header = () => {
             <div className="p-6">
               {isSignUp ? (
                 // Sign Up Form
-
-
                 
                 <div>
                   <h2 className="mb-4 text-2xl font-bold text-center text-red-600">
@@ -167,12 +165,6 @@ const Header = () => {
               </div>
                   
                 </div>
-
-
-
-
-
-
 
               ) : (
                 // Sign In Form

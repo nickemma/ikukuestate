@@ -2,8 +2,6 @@ import React, { useState, useRef } from 'react';
 import { FaArrowRight } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import Slider from 'react-slick';
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import { FaGreaterThan } from "react-icons/fa6";
 import { FaLessThan } from "react-icons/fa6";
 
@@ -108,79 +106,75 @@ const handleNext = () => {
           Your browser does not support the video tag.
         </video>
         <div className="absolute flex items-center space-x-4 text-white left-[20rem] text-[3rem] mt-[8rem] font-normal">
-          <h>
+          <h1>
             Your window to the <br />
             <span className="italic">world's finest</span> real estate
-          </h>
+          </h1>
         </div>
         <div className="absolute flex items-center space-x-4 bottom-8 left-[20rem]">
   <Link to="/buy" className="flex items-center space-x-2">
-    <h1 className="text-3xl font-bold text-white">Explore Listings</h1>
+    <h2 className="text-3xl font-bold text-white">Explore Listings</h2>
     <FaArrowRight className="text-3xl text-white" />
   </Link>
 </div>
 
-      </div>
+      </div> 
 
-    <div className="px-6 mt-[5rem] bg-gray-100">
-    <h2 className="text-red-500 text-[2rem] ml-[22rem]">GLOBAL REGIONS</h2>
-      <div className="flex ml-[22rem] mt-4">
-        <h3 className="text-[2rem]">
-          <span className="italic">Wherever</span> you’re going, we can take{' '}
-          <span className="italic">you there</span>
-        </h3>
-        <Link to="/region">
-          <button className="h-14 bg-red-600 w-[20rem] text-white text-[1.5rem] ml-[14rem] mt-4">
-            Discover Global Regions
-          </button>
-        </Link>
-      </div>
 
-      <Slider ref={sliderRef} {...settings} className="mt-10">
-        {images.map((item, index) => (
-          <div key={index} className="px-2 text-center">
-            <div className="w-full h-[38rem] overflow-hidden bg-white rounded-md">
-              <img
-                src={item.src}
-                alt={item.state}
-                className="object-cover w-full h-full transition-transform duration-300 ease-in-out hover:scale-105"
-              />
-            </div>
-            <h2 className="mt-4 text-2xl font-bold mr-[27rem]">{item.state}</h2>
-            
-            <div className="mt-2">
-              <Link
-                to="/region"
-                className="flex items-center justify-center space-x-2 text-red-600 group"
-              >
-                <div className='flex mr-[30rem]'>   
-                <span className="text-lg font-semibold ">Discover</span>
-                <FaArrowRight className="mt-2 transition-transform duration-300 ease-in-out group-hover:-translate-x-1" />
-                </div>
-              </Link>
-            </div>
-            
+<div className="px-6 mt-[5rem] bg-gray-100">
+  <h1 className="text-red-500 text-[2rem] ml-[22rem]">GLOBAL REGIONS</h1>
+  <div className="flex ml-[22rem] mt-4">
+    <h2 className="text-[2rem]">
+      <span className="italic">Wherever</span> you’re going, we can take{' '}
+      <span className="italic">you there</span>
+    </h2>
+    <Link to="/region">
+      <button className="h-14 bg-red-600 w-[20rem] text-white text-[1.5rem] ml-[14rem] mt-4">
+        Discover Global Regions
+      </button>
+    </Link>
+  </div>
+
+  <Slider ref={sliderRef} {...settings} className="mt-10">
+    {images.map((item, index) => (
+      <div key={index} className="px-2 text-center">
+        {/* Add Link around the image */}
+        <Link to={`/region-page/${item.state}`}>
+          <div className="w-full h-[38rem] overflow-hidden bg-white rounded-md">
+            <img
+              src={item.src}
+              alt={item.state}
+              className="object-cover w-full h-full transition-transform duration-300 ease-in-out hover:scale-105"
+            />
           </div>
-        ))}
-      </Slider>
+        </Link>
+        <h3 className="mt-4 text-2xl font-bold mr-[27rem]">{item.state}</h3>
 
-      {/* Custom arrows below images */}
-      <div className="flex justify-center mt-4 space-x-4">
-        <button
-          className="p-2"
-          onClick={handlePrev}
-        >
-          <FaLessThan size={20} />
-        </button>
-        <button
-          className="p-2 "
-          onClick={handleNext}
-        >
-          <FaGreaterThan size={20} />
-        </button>
+        <div className="mt-2">
+          <Link
+            to="/region"
+            className="flex items-center justify-center space-x-2 text-red-600 group"
+          >
+            <div className="flex mr-[30rem]">
+              <span className="text-lg font-semibold ">Discover</span>
+              <FaArrowRight className="mt-2 transition-transform duration-300 ease-in-out group-hover:-translate-x-1" />
+            </div>
+          </Link>
+        </div>
       </div>
-    </div>
+    ))}
+  </Slider>
 
+  {/* Custom arrows below images */}
+  <div className="flex justify-center mt-4 space-x-4">
+    <button className="p-2" onClick={handlePrev}>
+      <FaLessThan size={20} />
+    </button>
+    <button className="p-2 " onClick={handleNext}>
+      <FaGreaterThan size={20} />
+    </button>
+  </div>
+</div>
 
  {/* Discover listing */}
       <div className="px-6 mt-10">
@@ -198,7 +192,7 @@ const handleNext = () => {
           className="object-cover w-full h-full"
         />
         <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 text-white bg-black bg-opacity-50">
-          <h2 className="text-3xl font-bold">Home and Apartment</h2>
+          <h3 className="text-3xl font-bold">Home and Apartment</h3>
           <p className="mt-2 text-lg">Popular</p>
         </div>
       </div>
@@ -220,7 +214,7 @@ const handleNext = () => {
             className="object-cover w-full h-full"
           />
           <div className="absolute inset-0 flex flex-col items-center justify-end pb-4 text-white bg-black bg-opacity-50">
-            <h2 className="text-2xl font-bold">{image.title}</h2>
+            <h4 className="text-2xl font-bold">{image.title}</h4>
             <p className="mt-2 text-lg">{image.subtitle}</p>
           </div>
         </div>

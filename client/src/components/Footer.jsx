@@ -4,7 +4,7 @@ import { FaSquareXTwitter } from "react-icons/fa6";
 import { TiSocialYoutubeCircular } from "react-icons/ti";
 import { FaSquareInstagram } from "react-icons/fa6";
 import { RxLinkedinLogo } from "react-icons/rx";
-import { IoIosArrowDropdownCircle } from "react-icons/io";
+
 
 
 export default function Footer() {
@@ -17,11 +17,11 @@ export default function Footer() {
 className='w-40 bg-red-600 h-[7rem] font-bold ml-28'>LOGO
 </div>
 <div>
-<h className='font-semibold text-[1.5rem] font-serif'>The Ikukuestate</h>
+<h1 className='font-semibold text-[1.5rem] font-serif'>The Ikukuestate</h1>
 <p className=' text-[1.5rem]'>ABOUT US</p>
 </div>
 <div>
-<h className='font-semibold ml-60 text-[1.5rem] font-serif'>Resouces</h>
+<h2 className='font-semibold ml-60 text-[1.5rem] font-serif'>Resouces</h2>
 <ul className='outline-none text-[1.5rem]  ml-60'>
   <li>BUY</li>
   <li>RENT</li>
@@ -33,7 +33,7 @@ className='w-40 bg-red-600 h-[7rem] font-bold ml-28'>LOGO
 </div>
 
 <hr className='bg-gray-950'></hr>
-<h className='text-[1.5rem] ml-28'>THE MOST FOLLOWED REAL ESTATE BRAND</h>
+<h3 className='text-[1.5rem] ml-28'>THE MOST FOLLOWED REAL ESTATE BRAND</h3>
 
 <ul className="flex mt-2 space-x-2 ml-28">
   <li><FaFacebook className="h-14 w-14" /></li>
@@ -45,8 +45,8 @@ className='w-40 bg-red-600 h-[7rem] font-bold ml-28'>LOGO
 
 <hr  className='bg-gray-950'></hr>
 <div className='w-full text-white bg-black '> 
-<div class="flex items-center justify-center mt-20">
-  <ul class="flex space-x-4 text-center mt-16 text-[1.5rem]">
+<div className="flex items-center justify-center mt-20">
+  <ul className="flex space-x-4 text-center mt-16 text-[1.5rem]">
     <li>TERMS OF USE</li>
     <li>PRIVACY POLICY</li>
     <li>CCPA</li>
