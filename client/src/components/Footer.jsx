@@ -1,78 +1,129 @@
-import React from 'react'
-import { FaFacebook } from "react-icons/fa";
-import { FaSquareXTwitter } from "react-icons/fa6";
+import {
+  FaFacebook,
+  FaTwitter,
+  FaInstagram,
+  FaWhatsapp,
+  FaTiktok,
+} from "react-icons/fa";
 import { TiSocialYoutubeCircular } from "react-icons/ti";
-import { FaSquareInstagram } from "react-icons/fa6";
-import { RxLinkedinLogo } from "react-icons/rx";
-import { IoIosArrowDropdownCircle } from "react-icons/io";
-
 
 export default function Footer() {
   return (
+    <footer className="bg-gray-200 p-10">
+      <div className="flex flex-wrap justify-between mb-10">
+        {/* Logo Section */}
+        <div className="flex items-center">
+          <img
+            src="/logo.jpg"
+            alt="The Agency Logo"
+            className="w-24 h-24"
+            loading="lazy"
+          />
+        </div>
 
-    <div className='px-6 mt-24 '>
+        {/* About Section */}
+        <div className="w-1/4">
+          <h3 className="text-lg font-bold">The Agency</h3>
+          <a href="/about" className="block mt-2 text-gray-600">
+            About Us
+          </a>
+          <a href="/sign-in" className="block mt-2 text-gray-600">
+            SignIn
+          </a>
+          <a href="/sign-up" className="block mt-2 text-gray-600">
+            SignUp
+          </a>
+        </div>
 
-<div className='flex gap-64 '>
-<div
-className='w-40 bg-red-600 h-[7rem] font-bold ml-28'>LOGO
-</div>
-<div>
-<h className='font-semibold text-[1.5rem] font-serif'>The Ikukuestate</h>
-<p className=' text-[1.5rem]'>ABOUT US</p>
-</div>
-<div>
-<h className='font-semibold ml-60 text-[1.5rem] font-serif'>Resouces</h>
-<ul className='outline-none text-[1.5rem]  ml-60'>
-  <li>BUY</li>
-  <li>RENT</li>
-  <li>SELL</li>
-  <li>REGIONS</li>
-</ul>
-</div>
+        {/* Resources Section */}
+        <div className="w-1/4">
+          <h3 className="text-lg font-bold">Resources</h3>
+          <a href="/properties" className="block mt-2 text-gray-600">
+            Buy
+          </a>
+          <a href="/sell" className="block mt-2 text-gray-600">
+            Sell
+          </a>
+          <a href="/regions" className="block mt-2 text-gray-600">
+            Global Regions
+          </a>
+        </div>
 
-</div>
+        {/* Get In Touch Section */}
+        <div className="w-1/4">
+          <h3 className="text-lg font-bold">Get In Touch</h3>
+          <p className="mt-4 text-sm text-gray-600">
+            The most followed real estate brand
+          </p>
+          <div className="flex space-x-4 mt-2">
+            <a
+              href="https://www.facebook.com/profile.php?id=100094256391231&mibextid=ZbWKwL"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaFacebook className="h-6 w-6 text-gray-600" />
+            </a>
+            <a
+              href="https://x.com/Ikuku_Tech_Prop?t=ILQpyPTEBCXay9H0pdq3ng&s=09"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaTwitter className="h-6 w-6 text-gray-600" />
+            </a>
+            <a
+              href="https://youtube.com/@ikukutechproperty?si=xWsfcW8_uoJriboD"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <TiSocialYoutubeCircular className="h-6 w-6 text-gray-600" />
+            </a>
+            <a
+              href="https://www.instagram.com/ikuku_tech_property/profilecard/?igsh=M2t2azVhdm5wMWlv"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaInstagram className="h-6 w-6 text-gray-600" />
+            </a>
+            <a
+              href="https://linksharing.samsungcloud.com/aD3VSfA74h9v"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaWhatsapp className="h-6 w-6 text-gray-600" />
+            </a>
+            <a
+              href="https://www.tiktok.com/@ikuku_tech_property?_t=ZM-8t95rNFJI6H&_r=1"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaTiktok className="h-6 w-6 text-gray-600" />
+            </a>
+          </div>
+        </div>
+      </div>
 
-<hr className='bg-gray-950'></hr>
-<h className='text-[1.5rem] ml-28'>THE MOST FOLLOWED REAL ESTATE BRAND</h>
+      <hr className="my-5" />
 
-<ul className="flex mt-2 space-x-2 ml-28">
-  <li><FaFacebook className="h-14 w-14" /></li>
-  <li><FaSquareXTwitter className="h-14 w-14" /></li>
-  <li><TiSocialYoutubeCircular className="h-14 w-14" /></li>
-  <li><FaSquareInstagram className="h-14 w-14" /></li>
-  <li><RxLinkedinLogo className="h-14 w-14" /></li>
-</ul>
-
-<hr  className='bg-gray-950'></hr>
-<div className='w-full text-white bg-black '> 
-<div class="flex items-center justify-center mt-20">
-  <ul class="flex space-x-4 text-center mt-16 text-[1.5rem]">
-    <li>TERMS OF USE</li>
-    <li>PRIVACY POLICY</li>
-    <li>CCPA</li>
-    <li>DMCA</li>
-    <li>ACCESSIBILITY</li>
-  </ul>
-</div>
-
-<div className='mt-16 text-[1.6rem]'>The Agency fully supports the Equal Housing Opportunity laws. The Agency IP Holdco, LLC and its parents, affiliates, subsidiaries, franchisees of its affiliates, and network partners make no representations, warranties, or guaranties as to the accuracy of the information contained herein, including square footage, lot size or other information concerning the condition, suitability or features of the property. All material is intended for informational purposes only and has been obtained from public records, MLS, or other sources believed to be reliable, but not verified. All prospective buyers should conduct a careful, independent investigation of the information and property, and consult with appropriate professionals, such as appraisers, architects, civil engineers, etc. CalDRE #01904054</div>
-
-
-
-
-</div>
-
-
-    </div>
-
-
-
-
-
-
-
-
-
-
-  )
+      {/* Footer Legal Section */}
+      <div className="text-center">
+        <ul className="flex justify-center space-x-8 mb-4">
+          <li>
+            <a href="/terms" className="text-gray-600">
+              TERMS OF USE
+            </a>
+          </li>
+          <li>
+            <a href="/privacy-policy" className="text-gray-600">
+              PRIVACY POLICY
+            </a>
+          </li>
+          <li>
+            <a href="/" className="text-gray-600">
+              ACCESSIBILITY
+            </a>
+          </li>
+        </ul>
+      </div>
+    </footer>
+  );
 }

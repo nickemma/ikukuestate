@@ -48,3 +48,6 @@ app.listen(config.PORT, async () => {
   await connectDB();
   console.log(`Server running on port http://localhost:${config.PORT}`);
 });
+
+// i need to handle email been sent from the user to the admin
+// for the property they are interested in. backend and frontend functionality
