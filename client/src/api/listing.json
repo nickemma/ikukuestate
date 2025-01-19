@@ -1,0 +1,150 @@
+[
+  {
+    "id": 1,
+    "name": "Luxury Apartment in Altos Reales",
+    "description": "A beautiful luxury apartment located in Altos Reales with stunning sea views.",
+    "city": "Lagos",
+    "location": "Orchid road lekki, Lagos,Nigeria",
+    "propertyType": "Multi Family",
+    "price": 1200000,
+    "propertyDetails": "Altos Reales, Marbella Golden Mile, Marbella MA, Spain 29602",
+    "beds": 3,
+    "baths": 2,
+    "sqft": 1500,
+    "furnished": true,
+    "images": [
+        "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/223055042_1.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/223055042_2.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/223055042_3.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/223055042_5.jpg?mw=1200&mh=677"
+    ],
+    "features": "Swimming Pool, Gym, Parking"
+  },
+  {
+    "id": 2,
+    "name": "Modern Plot in Enugu State",
+    "description": "Spacious plot perfect for building a modern villa.",
+    "city": "Abuja",
+    "location": "Gwarinpa, Abuja, Nigeria",
+    "propertyType": "Lands",
+    "price": 800000,
+    "propertyDetails": "Puerto Banús, Marbella, Spain 29660",
+    "beds": 5,
+    "baths": 16,
+    "sqft": 10000,
+    "furnished": false,
+    "images": [
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_1.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_2.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_3.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_6.jpg?mw=1200&mh=677"
+    ],
+    "features": "Sea View, Close to Amenities"
+  },
+  {
+    "id": 3,
+    "name": "Modern Plot in Puerto Banús",
+    "description": "Spacious plot perfect for building a modern villa.",
+    "city": "Abuja",
+    "location": "Gwarinpa, Abuja, Nigeria",
+    "propertyType": "Single Family",
+    "price": 800000,
+    "propertyDetails": "Puerto Banús, Marbella, Spain 29660",
+    "beds": 2,
+    "baths": 2,
+    "sqft": 10000,
+    "furnished": false,
+    "images": [
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_1.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_2.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_3.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_6.jpg?mw=1200&mh=677"
+    ],
+    "features": "Sea View, Close to Amenities"
+  },
+  {
+    "id": 4 ,
+    "name": "San Francisco Plot",
+    "description": "Spacious plot perfect for building a modern villa.",
+    "city": "Abuja",
+    "location": "Gwarinpa, Abuja, Nigeria",
+    "propertyType": "Lounge",
+    "price": 800000,
+    "propertyDetails": "Puerto Banús, Marbella, Spain 29660",
+    "beds": 1,
+    "baths": 12,
+    "sqft": 10000,
+    "furnished": false,
+    "images": [
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/CSFCMN/588757_2.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_2.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_3.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_6.jpg?mw=1200&mh=677"
+    ],
+    "features": "Sea View, Close to Amenities"
+  },
+  {
+    "id": 5,
+    "name": "Luxury Villa in Lagos",
+    "description": "Stunning villa with modern architecture and spacious rooms.",
+    "city": "Lagos",
+    "location": "Lekki Phase 1, Lagos, Nigeria",
+    "propertyType": "Villa",
+    "price": 950000,
+    "propertyDetails": "Lekki, Lagos, Nigeria",
+    "beds": 4,
+    "baths": 5,
+    "sqft": 12000,
+    "furnished": true,
+    "images": [
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/CSFCMN/588757_3.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_4.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_5.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_7.jpg?mw=1200&mh=677"
+    ],
+    "features": "Swimming Pool, Close to Beach"
+  },
+  {
+    "id": 6,
+    "name": "Modern Apartment in Abuja",
+    "description": "Stylish apartment located in the heart of the city.",
+    "city": "Abuja",
+    "location": "Central Area, Abuja, Nigeria",
+    "propertyType": "Multi Family",
+    "price": 600000,
+    "propertyDetails": "Central Area, Abuja, Nigeria",
+    "beds": 2,
+    "baths": 2,
+    "sqft": 8000,
+    "furnished": true,
+    "images": [
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/CSFCMN/588757_4.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_8.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_9.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_10.jpg?mw=1200&mh=677"
+    ],
+    "features": "Gym, Near Shopping Centers"
+  },
+  {
+    "id": 7,
+    "name": "Cozy Bungalow in Port Harcourt",
+    "description": "Charming bungalow with a beautiful garden and modern finishes.",
+    "city": "Port Harcourt",
+    "location": "Trans-Amadi, Port Harcourt, Nigeria",
+    "propertyType": "Multi Family",
+    "price": 500000,
+    "propertyDetails": "Trans-Amadi, Port Harcourt, Nigeria",
+    "beds": 3,
+    "baths": 3,
+    "sqft": 9000,
+    "furnished": false,
+    "images": [
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/CSFCMN/588757_5.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_11.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_12.jpg?mw=1200&mh=677",
+      "https://cdn.datafloat.com/AGY_PUBLIC/MLSPhotos/SWLCMN/224097154_13.jpg?mw=1200&mh=677"
+    ],
+    "features": "Garden, Quiet Neighborhood"
+  }
+]
+

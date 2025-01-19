@@ -1,14 +1,27 @@
+/* Import slick-carousel styles first */
+@import "slick-carousel/slick/slick.css";
+@import "slick-carousel/slick/slick-theme.css";
+
+/* Tailwind imports must follow */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Custom styles */
 :root {
   line-height: 1.5;
   font-weight: 400;
+  font-family: "Times New Roman";
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+/* Additional styles */
+.carousel-container {
+  max-width: 100%;
+  overflow: hidden;
 }
