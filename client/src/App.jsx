@@ -13,6 +13,7 @@ import Buy from "./pages/Buy";
 
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import EmailVerification from "./components/EmailVerification";
 
 // Admin Routes
 // import AdminLayout from "./components/Admin/AdminLayout";
@@ -36,6 +37,8 @@ const App = () => {
           <Route path="/terms" element={<TermOfUse />} />
           <Route path="/region/:regionId" element={<RegionDetails />} />
           <Route path="/properties/:id" element={<ListingDetailsPage />} />
+          <Route path="/verify-email/:token" element={<EmailVerification />} />
+
           <Route
             path="/user/dashboard"
             element={

@@ -3,12 +3,15 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
+import { API_URL } from "../config/Api";
 
 const AuthModal = ({ onClose }) => {
+  const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [form, setForm] = useState({
-    firstname: "",
-    lastname: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmpassword: "",
@@ -29,26 +32,24 @@ const AuthModal = ({ onClose }) => {
         }
 
         // Registration flow
-        const { data } = await axios.post(
-          "http://localhost:5000/api/auth/register",
-          form
-        );
+        const { data } = await axios.post(`${API_URL}/auth/register`, form);
         console.log(data);
         setIsVerificationSent(true);
         toast.success("Verification email sent. Please check your inbox.");
       } else {
         // Login flow
         const { email, password } = form;
-        const { data } = await axios.post(
-          "http://localhost:5000/api/auth/login",
-          {
-            email,
-            password,
-          }
-        );
+        const { data } = await axios.post(`${API_URL}/auth/login`, {
+          email,
+          password,
+        });
+        // Store user data and token in local storage
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("token", data.token);
 
         login(data.user, data.token);
         toast.success("Logged in successfully!");
+        navigate("/user/dashboard");
         onClose();
       }
     } catch (err) {
@@ -72,17 +73,17 @@ const AuthModal = ({ onClose }) => {
               <>
                 <input
                   type="text"
-                  name="firstname"
+                  name="firstName"
                   placeholder="First Name"
-                  value={form.firstname}
+                  value={form.firstName}
                   onChange={handleInputChange}
                   className="w-full mb-4 px-4 py-2 border rounded-md"
                 />
                 <input
                   type="text"
-                  name="lastname"
+                  name="lastName"
                   placeholder="Last Name"
-                  value={form.lastname}
+                  value={form.lastName}
                   onChange={handleInputChange}
                   className="w-full mb-4 px-4 py-2 border rounded-md"
                 />

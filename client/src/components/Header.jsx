@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FaArrowUp } from "react-icons/fa";
+import { FiLogOut } from "react-icons/fi";
 import AuthModal from "../auth/AuthModal";
 import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
   const { user, logout } = useAuth();
-
-  console.log(user);
-
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
@@ -35,6 +34,10 @@ const Header = () => {
     { name: "ABOUT", link: "/about" },
     { name: "REGION", link: "/region" },
   ];
+
+  const handleDropdownToggle = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
 
   return (
     <>
@@ -75,15 +78,42 @@ const Header = () => {
               </Link>
             ))}
             {user ? (
-              <>
-                <p className="text-gray-700">Welcome, {user.firstName}</p>
-                <button
-                  className="bg-red-600 text-white py-1 px-4 rounded"
-                  onClick={logout}
-                >
-                  Logout
-                </button>
-              </>
+              <button
+                className="bg-red-600 text-white py-1 px-4 rounded"
+                onClick={handleDropdownToggle}
+              >
+                {user.firstName}
+                {isDropdownOpen && (
+                  <div className="flex flex-col items-start p-2 absolute right-4 mt-[1rem] w-40 bg-white shadow-lg rounded-md z-10">
+                    <Link
+                      to="/user/dashboard"
+                      className="relative mb-2 text-lg text-black after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-0 after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      {" "}
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/edit-profile"
+                      className="relative mb-2 text-lg text-black after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-0 after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      {" "}
+                      Edit Profile
+                    </Link>
+                    <button
+                      className="relative flex items-center text-lg text-black after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-0 after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full"
+                      onClick={() => {
+                        logout();
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      <FiLogOut className="pr-1 text-2xl" />
+                      Log Out
+                    </button>
+                  </div>
+                )}
+              </button>
             ) : (
               <button
                 className="w-40 h-10 text-white bg-red-600 rounded-md"

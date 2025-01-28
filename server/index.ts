@@ -13,7 +13,9 @@ import { HTTPSTATUS } from "./config/http.config";
 import { asyncHandler } from "./middleware/asyncHandler";
 import authRoutes from "./routes/user.routes";
 import propertyRoutes from "./routes/property.routes";
-import bookAndFavoriteRoutes from "./routes/user.handlers.routes";
+import regionRoutes from "./routes/region.routes";
+import FavoriteRoutes from "./routes/user.handlers.routes";
+import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 //============= Middlewares
@@ -39,15 +41,15 @@ app.get(
 );
 
 //============= Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/v1", bookAndFavoriteRoutes);
-app.use("/api/admin", propertyRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1", FavoriteRoutes);
+app.use("/api/v1/admin", propertyRoutes);
+app.use("/api/v1/admin", regionRoutes);
+
+app.use(errorHandler);
 
 //============= Server
 app.listen(config.PORT, async () => {
   await connectDB();
   console.log(`Server running on port http://localhost:${config.PORT}`);
 });
-
-// i need to handle email been sent from the user to the admin
-// for the property they are interested in. backend and frontend functionality

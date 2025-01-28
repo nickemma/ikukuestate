@@ -4,6 +4,9 @@ import featuredListings from "../api/listing.json";
 import Slider from "react-slick";
 import { FaBed, FaBath, FaHome, FaVectorSquare } from "react-icons/fa";
 import SimilarListing from "./SimilarListing";
+import axios from "axios";
+import { API_URL } from "../config/Api";
+import { toast } from "react-toastify";
 
 const ListingDetailsPage = () => {
   const { id } = useParams();
@@ -29,6 +32,7 @@ const ListingDetailsPage = () => {
     message: "",
     consent: false,
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -38,19 +42,33 @@ const ListingDetailsPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission logic here (e.g., send to API)
-    console.log("Scheduled Tour Data:", formData);
-    // Reset form after submission if needed
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      message: "",
-      consent: false,
-    });
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${API_URL}/auth/schedule-tour`,
+        formData
+      );
+      if (response.status === 200) {
+        toast.success("Tour scheduled successfully!");
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          message: "",
+          consent: false,
+        });
+      } else {
+        toast.error("Failed to schedule the tour. Please try again.");
+      }
+    } catch (err) {
+      console.error("An error occurred:", err);
+      toast.error(err.response?.data?.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!listing) {
@@ -102,6 +120,7 @@ const ListingDetailsPage = () => {
           <p className="text-xl font-medium text-red-600">
             ₦{listing?.price?.toLocaleString()}
           </p>
+          {/* handler favorites here */}
         </div>
       </div>
 
@@ -279,9 +298,12 @@ const ListingDetailsPage = () => {
             </div>
             <button
               type="submit"
-              className="bg-red-600 text-white rounded py-2 px-4 self-start"
+              disabled={loading}
+              className={`bg-red-600 text-white rounded py-2 px-4 self-start ${
+                loading ? "bg-gray-400" : "bg-red-600 hover:bg-red-700"
+              }`}
             >
-              Schedule Tour
+              {loading ? "Submitting..." : "Schedule Tour"}
             </button>
           </form>
         </div>

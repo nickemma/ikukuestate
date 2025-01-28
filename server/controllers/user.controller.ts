@@ -30,10 +30,10 @@ const generateToken = (user: { _id: string; role: string }) => {
  */
 
 export const register = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email, phone, password } = req.body;
+  const { firstName, lastName, email, password } = req.body;
 
   // Check if all fields are provided
-  if (!firstName || !lastName || !email || !phone || !password) {
+  if (!firstName || !lastName || !email || !password) {
     res.status(HTTPSTATUS.BAD_REQUEST);
     throw new Error("Please provide all required fields");
   }
@@ -52,7 +52,7 @@ export const register = asyncHandler(async (req, res) => {
     firstName,
     lastName,
     email,
-    phone,
+    phone: req.body.phone,
     password,
     role: "user", // Default role is set to "user"
     verificationToken,
@@ -324,4 +324,43 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   await user.save();
 
   res.status(HTTPSTATUS.OK).json({ message: "Email verified successfully" });
+});
+
+/*
+ * @route   POST api/auth/schedule-tour
+ * @desc    Schedule a tour
+ * @access  Public
+ */
+
+export const scheduleTour = asyncHandler(async (req, res) => {
+  console.log(req.body);
+  const { firstName, lastName, email, phone, message } = req.body;
+
+  // Validate input fields
+  if (!firstName || !lastName || !email) {
+    res.status(HTTPSTATUS.BAD_REQUEST);
+    throw new Error("Please provide all required fields.");
+  }
+
+  // Prepare email content
+  const emailContent = `
+    <h1>New Property Tour Scheduled</h1>
+    <p><strong>Name:</strong> ${firstName} ${lastName}</p>
+    <p><strong>Email:</strong> ${email}</p>
+    <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
+    <p><strong>Message:</strong> ${message || "No additional notes"}</p>
+  `;
+
+  // Send email using Resend
+  await resend.emails.send({
+    from: "Admin <onboarding@resend.dev>",
+    to: "nicholasemmanuel321@gmail.com",
+    subject: `Tour Scheduled by ${firstName} ${lastName}`,
+    html: emailContent,
+  });
+
+  // Respond to the client
+  res.status(HTTPSTATUS.OK).json({
+    message: "Tour scheduled successfully. Email sent to the admin.",
+  });
 });

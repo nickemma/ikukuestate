@@ -21,4 +21,7 @@ const storage = multer.diskStorage({
 });
 
 // Create the multer instance
-export const upload = multer({ storage: storage });
+export const upload = multer({
+  storage: storage,
+  limits: { fileSize: 20 * 1024 * 1024 },
+});

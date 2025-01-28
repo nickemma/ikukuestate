@@ -8,6 +8,7 @@ import {
   resetPassword,
   verifyEmail,
   getUserProfile,
+  scheduleTour,
 } from "../controllers/user.controller";
 import { protect } from "../middleware/auth.middleware";
 
@@ -24,5 +25,7 @@ router.post("/reset-password/:resetToken", resetPassword);
 
 router.get("/verify-email/:token", verifyEmail);
 router.get("/profile", protect, getUserProfile);
+
+router.post("/schedule-tour", scheduleTour);
 
 export default router;

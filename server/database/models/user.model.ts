@@ -25,8 +25,8 @@ const UserSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: [true, "Please enter your phone number"],
       match: [/^\+?[1-9]\d{1,14}$/, "Please enter a valid phone number"],
+      default: "+1234567890", // Default phone number
     },
     password: {
       type: String,
@@ -41,13 +41,6 @@ const UserSchema = new mongoose.Schema(
       },
     },
     favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Property" }],
-    appointments: [
-      {
-        propertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property" },
-        date: { type: Date, required: true },
-        time: { type: String, required: true },
-      },
-    ],
     role: {
       type: String,
       enum: ["user", "admin"],
