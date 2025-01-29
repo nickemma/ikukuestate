@@ -49,7 +49,12 @@ const AuthModal = ({ onClose }) => {
 
         login(data.user, data.token);
         toast.success("Logged in successfully!");
-        navigate("/user/dashboard");
+        // Redirect based on user role
+        if (data.user.role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/user/dashboard");
+        }
         onClose();
       }
     } catch (err) {

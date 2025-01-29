@@ -30,7 +30,7 @@ const generateToken = (user: { _id: string; role: string }) => {
  */
 
 export const register = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, role } = req.body;
 
   // Check if all fields are provided
   if (!firstName || !lastName || !email || !password) {
@@ -54,7 +54,7 @@ export const register = asyncHandler(async (req, res) => {
     email,
     phone: req.body.phone,
     password,
-    role: "user", // Default role is set to "user"
+    role: role || "user", // Default role is set to "user"
     verificationToken,
   });
 
@@ -128,6 +128,7 @@ export const login = asyncHandler(async (req, res) => {
       lastName: user.lastName,
       email: user.email,
       phone: user.phone,
+      role: user.role,
     },
     token,
   });

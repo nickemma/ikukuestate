@@ -1,8 +1,15 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import MyProfile from "../components/MyProfile";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [active, setActive] = useState(1);
+
+  const onHandledToggle = (index) => {
+    setActive(index);
+  };
 
   return (
     <div className="p-8 mt-24">
@@ -34,36 +41,40 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* My Profile Section */}
-      <div className="bg-white shadow-md rounded-md p-6 mt-8">
-        <h2 className="text-xl font-semibold mb-4">My Profile</h2>
-        <p className="text-gray-700">
-          <b>Name:</b> {user.firstName} {user.lastName}
-        </p>
-        <p className="text-gray-700">
-          <b>Email:</b> {user.email}
-        </p>
-        <Link
-          className="mt-4 inline-block bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-all"
-          to="/profile"
-        >
-          Edit Profile
-        </Link>
-      </div>
+      {/* My Profile & Favorite Listings Section */}
+      <section>
+        <div className="mt-10">
+          <ul className="flex justify-center space-x-10">
+            <li
+              onClick={() => onHandledToggle(1)}
+              className={`text-2xl cursor-pointer border-b-2 ${
+                active === 1 ? "text-5ed-400 border-red-500" : "text-black"
+              } transition duration-300`}
+            >
+              My Profile
+            </li>
+            <li
+              onClick={() => onHandledToggle(2)}
+              className={`text-2xl cursor-pointer border-b-2 ${
+                active === 2 ? "text-red-500 border-red-500" : "text-black"
+              } transition duration-300`}
+            >
+              Favorite Listings
+            </li>
+          </ul>
+        </div>
 
-      {/* Favorite Listings Section */}
-      <div className="bg-white shadow-md rounded-md p-6 mt-8">
-        <h2 className="text-xl font-semibold mb-4">Favorite Listings</h2>
-        <p className="text-gray-700 mb-4">
-          View all your saved properties here.
-        </p>
-        <Link
-          className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-all"
-          to="/favorites"
-        >
-          View Favorites
-        </Link>
-      </div>
+        {/* Content here */}
+        <div className={`${active === 1 ? "flex" : "hidden"} flex-col pb-8`}>
+          <MyProfile />
+        </div>
+
+        <div className={`${active === 2 ? "flex" : "hidden"} pb-8`}>
+          <div className="">
+            <p>hello from listing</p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
