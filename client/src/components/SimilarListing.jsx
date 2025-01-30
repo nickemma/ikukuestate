@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
+import { FaHeart } from "react-icons/fa";
 
 const SimilarListing = ({ similarListings }) => {
   return (
@@ -60,6 +61,14 @@ const SimilarListing = ({ similarListings }) => {
                   <p>
                     <b>{listing?.propertyType}</b>
                   </p>
+                </div>
+                <div className="mt-4">
+                  <div className="flex justify-center items-center w-10 h-10 bg-gray-200 border border-gray-300 rounded-md p-1">
+                    <FaHeart
+                      className="w-6 h-6 text-red-600"
+                      aria-label="Remove from favorites Add to favorites"
+                    />
+                  </div>
                 </div>
               </div>
             </Link>

@@ -1,16 +1,38 @@
 import { useParams } from "react-router-dom";
-import region from "../api/region.json";
+import axios from "axios";
+import LoadingSpinner from "./LoadingSpinner";
+import ErrorMessage from "./ErrorMessage";
 import DiscoverListing from "./DiscoverListing";
+import { useEffect, useState } from "react";
+import { API_URL } from "../config/Api";
 
 const RegionDetails = () => {
   const { regionId } = useParams();
+  const [selectedRegion, setSelectedRegion] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Find the region based on the ID or path parameter
-  const selectedRegion = region?.find((item) => item?.link?.includes(regionId));
+  useEffect(() => {
+    const fetchRegion = async () => {
+      try {
+        const response = await axios.get(
+          `${API_URL}/admin/regions/${regionId}`
+        );
+        setSelectedRegion(response.data.data);
+      } catch (err) {
+        setError("Failed to load region", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!selectedRegion) {
+    fetchRegion();
+  }, [regionId]);
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
+  if (!selectedRegion)
     return <h2 className="text-center mt-20">Region not found!</h2>;
-  }
 
   return (
     <div className="mt-20">

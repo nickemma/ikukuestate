@@ -7,14 +7,17 @@ import "slick-carousel/slick/slick-theme.css";
 import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext";
 import Notification from "./auth/Notification.jsx";
+import { FavoritesProvider } from "./context/FavoriteContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <AuthProvider>
     <Notification />
-    <BrowserRouter>
-      <StrictMode>
-        <App />
-      </StrictMode>
-    </BrowserRouter>
+    <FavoritesProvider>
+      <BrowserRouter>
+        <StrictMode>
+          <App />
+        </StrictMode>
+      </BrowserRouter>
+    </FavoritesProvider>
   </AuthProvider>
 );

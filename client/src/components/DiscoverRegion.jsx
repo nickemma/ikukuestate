@@ -1,10 +1,16 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Slider from "react-slick";
-import region from "../api/region.json";
+import axios from "axios";
+import { API_URL } from "../config/Api";
+import LoadingSpinner from "./LoadingSpinner";
+import ErrorMessage from "./ErrorMessage";
 
 const DiscoverRegion = () => {
   const sliderRef = useRef(null);
+  const [regions, setRegions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const settings = {
     dots: true,
@@ -32,6 +38,24 @@ const DiscoverRegion = () => {
     ],
   };
 
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/admin/regions`);
+        setRegions(response.data.data);
+      } catch (err) {
+        setError("Failed to load regions", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRegions();
+  }, []);
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
+
   return (
     <div className="bg-gray-100 py-10">
       {/* Global Regions Header */}
@@ -52,8 +76,8 @@ const DiscoverRegion = () => {
       {/* Slider Section */}
       <div className="px-8">
         <Slider ref={sliderRef} {...settings} className="mt-10">
-          {region?.map((item) => (
-            <div key={item?.id} className="px-2 cursor-pointer">
+          {regions?.map((item) => (
+            <div key={item?._id} className="px-2 cursor-pointer">
               <div className="m-4 relative">
                 <figure className="overflow-hidden rounded-md shadow-md">
                   <img
@@ -64,7 +88,7 @@ const DiscoverRegion = () => {
                 </figure>
                 <h3 className="text-center text-xl font-semibold mt-4">
                   <Link
-                    to={item.link}
+                    to={`/region/${item._id}`}
                     className="text-gray-800 hover:text-red-500"
                   >
                     {item.city}
@@ -72,7 +96,7 @@ const DiscoverRegion = () => {
                 </h3>
                 <span className="block text-center text-red-600 mt-2">
                   <Link
-                    to={item.link}
+                    to={`/region/${item._id}`}
                     className="flex items-center justify-center text-lg font-medium hover:underline"
                   >
                     Discover

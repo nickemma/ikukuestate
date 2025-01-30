@@ -1,9 +1,15 @@
-import { useState } from "react";
-import listings from "../api/listing.json";
+import { useEffect, useState } from "react";
 import PropertyTypeDropdown from "../components/PropertyTypeDropdown";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { API_URL } from "../config/Api";
+import LoadingSpinner from "../components/LoadingSpinner";
+import ErrorMessage from "../components/ErrorMessage";
 
 const Buy = () => {
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     propertyType: [],
     minPrice: "",
@@ -13,6 +19,22 @@ const Buy = () => {
     baths: "",
     city: "",
   });
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/admin/properties`);
+        setProperties(response.data);
+      } catch (err) {
+        setError("Failed to load regions", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, []);
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
@@ -32,18 +54,19 @@ const Buy = () => {
 
   // Get unique cities and property types
   const uniqueCities = Array.from(
-    new Set(listings.map((listing) => listing.city))
+    new Set(properties?.map((listing) => listing?.region?.city))
   );
+
   const uniquePropertyTypes = Array.from(
-    new Set(listings.map((listing) => listing.propertyType))
+    new Set(properties.map((listing) => listing.propertyType))
   );
 
   // Filtered listings
-  const filteredListings = listings.filter((listing) => {
+  const filteredListings = properties?.filter((listing) => {
     return (
       (filters.propertyType.length === 0 ||
         filters.propertyType.includes(listing.propertyType)) &&
-      (filters.city === "" || listing.city === filters.city) &&
+      (filters.city === "" || listing?.region?.city === filters.city) &&
       (filters.minPrice === "" || listing.price >= Number(filters.minPrice)) &&
       (filters.maxPrice === "" || listing.price <= Number(filters.maxPrice)) &&
       (filters.furnished === "" ||
@@ -60,6 +83,9 @@ const Buy = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="container mx-auto p-4">
@@ -155,9 +181,9 @@ const Buy = () => {
       {/* Listings */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedListings.map((listing) => (
-          <Link key={listing.id} to={`/properties/${listing.id}`}>
+          <Link key={listing._id} to={`/properties/${listing._id}`}>
             <div
-              key={listing.id}
+              key={listing._id}
               className="border rounded-lg shadow-md overflow-hidden"
             >
               <img

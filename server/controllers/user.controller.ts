@@ -90,36 +90,38 @@ export const register = asyncHandler(async (req, res) => {
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  // Check if all fields are provided
+  // Step 1: Check if both email and password are provided
   if (!email || !password) {
     res.status(HTTPSTATUS.BAD_REQUEST);
     throw new Error("Please provide both email and password");
   }
 
-  // Check if the user exists in the database
+  // Step 2: Find the user by email in the database
   const user = await User.findOne({ email });
   if (!user) {
+    // If user not found, respond with an error
     res.status(HTTPSTATUS.BAD_REQUEST);
     throw new Error("Invalid email or password");
   }
 
-  // Check if the email is verified
+  // Step 3: Check if the email is verified
   if (!user.emailVerified) {
     res.status(HTTPSTATUS.UNAUTHORIZED);
     throw new Error("Email not verified. Please check your email.");
   }
 
-  // Check if the password is correct
+  // Step 4: Compare the provided password with the stored hashed password
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
+    // If password does not match, respond with an error
     res.status(HTTPSTATUS.BAD_REQUEST);
     throw new Error("Invalid email or password");
   }
 
-  // Generate token
+  // Step 5: Generate a token for the user upon successful login
   const token = generateToken({ _id: user._id.toString(), role: user.role });
 
-  // Respond with the logged in user (excluding sensitive information)
+  // Step 6: Respond with user data (excluding sensitive info) and the token
   res.status(HTTPSTATUS.OK).json({
     message: "User logged in successfully",
     user: {
@@ -160,30 +162,38 @@ export const getUserProfile = asyncHandler(async (req, res) => {
 export const changePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
-  // validate if the old password is correct
+  // Step 1: Validate if both old and new passwords are provided
   if (!oldPassword || !newPassword) {
     res.status(HTTPSTATUS.BAD_REQUEST);
     throw new Error("Please provide both old and new password");
   }
+
+  // Step 2: Get user ID from the request object (assuming user is authenticated)
   const userId = (req as any).user?.id;
+
+  // Step 3: Find the user by ID in the database
   const user = await User.findById(userId);
   if (!user) {
+    // If user not found, respond with an error
     res.status(HTTPSTATUS.NOT_FOUND);
     throw new Error("User not found");
   }
 
-  // Check if old password matches
+  // Step 4: Check if the old password matches the stored password
   const isMatch = await bcrypt.compare(oldPassword, user.password);
   if (!isMatch) {
+    // If old password does not match, respond with an error
     res.status(HTTPSTATUS.BAD_REQUEST);
     throw new Error("Invalid old password");
   }
 
-  // Hash the new password and save it
+  // Step 5: Update the user password with the new password
   user.password = newPassword;
+
+  // Step 6: Save the updated user object
   await user.save();
 
-  // Respond with the updated user (excluding sensitive information)
+  // Step 7: Respond with a success message
   res.status(HTTPSTATUS.OK).json({
     message: "Password changed successfully",
   });

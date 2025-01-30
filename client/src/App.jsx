@@ -16,10 +16,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import EmailVerification from "./components/EmailVerification";
 
 // Admin Routes
-// import AdminLayout from "./components/Admin/AdminLayout";
-// import AdminDashboard from "./pages/admin/AdminDashboard";
-// import AdminProperties from "./pages/admin/Properties";
-// import AdminUsers from "./pages/admin/Users";
+import AdminLayout from "./components/Admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProperties from "./pages/admin/Properties";
+import AdminUsers from "./pages/admin/Users";
 
 const App = () => {
   return (
@@ -48,7 +48,7 @@ const App = () => {
             }
           />
 
-          {/* Admin Routes
+          {/* Admin Routes */}
           <Route
             path="/admin"
             element={
@@ -60,7 +60,7 @@ const App = () => {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="properties" element={<AdminProperties />} />
             <Route path="users" element={<AdminUsers />} />
-          </Route> */}
+          </Route>
         </Routes>
       </main>
       <Footer />

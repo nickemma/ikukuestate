@@ -1,8 +1,33 @@
 import { Link } from "react-router-dom";
-import region from "../api/region.json";
-import DiscoverListing from "../components/DiscoverListing";
+import axios from "axios";
+import { API_URL } from "../config/Api";
+import LoadingSpinner from "../components/LoadingSpinner";
+import ErrorMessage from "../components/ErrorMessage";
+import { useEffect, useState } from "react";
 
 const Region = () => {
+  const [regions, setRegions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/admin/regions`);
+        setRegions(response.data.data);
+      } catch (err) {
+        setError("Failed to load regions", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRegions();
+  }, []);
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
+
   return (
     <section className="px-6 mt-20 bg-gray-100 py-10">
       {/* Header */}
@@ -18,12 +43,12 @@ const Region = () => {
       {/* Region Grid */}
       <h3 className="text-2xl font-medium mb-4 px-12">Nigeria</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-12">
-        {region.map((item) => (
+        {regions.map((item) => (
           <div
-            key={item.id}
+            key={item._id}
             className="bg-gray-200 rounded-md shadow-sm overflow-hidden cursor-pointer"
           >
-            <Link to={item.link}>
+            <Link to={`/region/${item._id}`}>
               <figure className="overflow-hidden">
                 <img
                   src={item.image}
@@ -38,7 +63,6 @@ const Region = () => {
           </div>
         ))}
       </div>
-      <DiscoverListing />
     </section>
   );
 };

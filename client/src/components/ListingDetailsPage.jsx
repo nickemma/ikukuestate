@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import featuredListings from "../api/listing.json";
 import Slider from "react-slick";
-import { FaBed, FaBath, FaHome, FaVectorSquare } from "react-icons/fa";
+import { FaBed, FaBath, FaHome, FaVectorSquare, FaHeart } from "react-icons/fa";
 import SimilarListing from "./SimilarListing";
 import axios from "axios";
 import { API_URL } from "../config/Api";
@@ -117,6 +117,16 @@ const ListingDetailsPage = () => {
 
         {/* Price */}
         <div className="mb-4">
+          <div className="mb-4 flex items-center justify-center gap-2">
+            {/* Heart Icon */}
+            <button className="flex items-center">
+              <FaHeart
+                className={`w-4 h-4 ${"text-red-600"}`}
+                aria-label={"Remove from favorites Add to favorites"}
+              />
+            </button>
+            <p className="text-[1rem] font-medium text-red-600">Save Listing</p>
+          </div>
           <p className="text-xl font-medium text-red-600">
             ₦{listing?.price?.toLocaleString()}
           </p>

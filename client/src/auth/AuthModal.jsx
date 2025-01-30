@@ -17,7 +17,7 @@ const AuthModal = ({ onClose }) => {
     confirmpassword: "",
   });
   const [isVerificationSent, setIsVerificationSent] = useState(false);
-  const { login } = useAuth();
+  const { login, error } = useAuth();
 
   const handleInputChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -144,6 +144,7 @@ const AuthModal = ({ onClose }) => {
           Close
         </button>
       </div>
+      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 };

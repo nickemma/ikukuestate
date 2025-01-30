@@ -1,13 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import featuredListings from "../api/listing.json";
+import axios from "axios";
+import { API_URL } from "../config/Api";
+import LoadingSpinner from "./LoadingSpinner";
+import ErrorMessage from "./ErrorMessage";
 
 const DiscoverListing = () => {
   const [visibleListings, setVisibleListings] = useState(6);
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const handleLoadMore = () => {
     setVisibleListings((prevCount) => prevCount + 4);
   };
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/admin/properties`);
+        setProperties(response.data);
+      } catch (err) {
+        setError("Failed to load regions", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, []);
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <section className="py-10">
@@ -28,12 +52,12 @@ const DiscoverListing = () => {
 
       {/* Listings Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-12">
-        {featuredListings?.slice(0, visibleListings)?.map((listing) => (
+        {properties?.slice(0, visibleListings)?.map((listing) => (
           <article
-            key={listing?.id}
+            key={listing?._id}
             className="bg-gray-200 rounded-md shadow-sm overflow-hidden cursor-pointer"
           >
-            <Link to={`/properties/${listing.id}`}>
+            <Link to={`/properties/${listing._id}`}>
               <figure className="overflow-hidden">
                 <img
                   src={listing?.images[0]}
@@ -58,7 +82,7 @@ const DiscoverListing = () => {
       </div>
 
       {/* Load More Button */}
-      {visibleListings < featuredListings?.length && (
+      {visibleListings < properties?.length && (
         <div className="text-center mt-8">
           <button
             onClick={handleLoadMore}

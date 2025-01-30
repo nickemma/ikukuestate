@@ -3,12 +3,14 @@ import { Link, useLocation } from "react-router-dom";
 import { FaArrowUp } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
 import AuthModal from "../auth/AuthModal";
+import EditProfileModal from "./EditProfileModal";
 import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
   const { user, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
 
@@ -94,9 +96,9 @@ const Header = () => {
                       Dashboard
                     </Link>
                     <Link
-                      to="/edit-profile"
+                      to="#"
                       className="relative mb-2 text-lg text-black after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-0 after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full"
-                      onClick={() => setIsDropdownOpen(false)}
+                      onClick={() => setIsEditProfileModalOpen(true)} // Open edit profile modal
                     >
                       {" "}
                       Edit Profile
@@ -124,6 +126,12 @@ const Header = () => {
             )}
             {isAuthModalOpen && (
               <AuthModal onClose={() => setIsAuthModalOpen(false)} />
+            )}
+            {/* Modal for Editing Profile */}
+            {isEditProfileModalOpen && (
+              <EditProfileModal
+                onClose={() => setIsEditProfileModalOpen(false)}
+              />
             )}
           </div>
         </div>
