@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import MyProfile from "../components/MyProfile";
+import FavoriteListings from "../components/FavoriteListings";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -70,9 +71,7 @@ const Dashboard = () => {
         </div>
 
         <div className={`${active === 2 ? "flex" : "hidden"} pb-8`}>
-          <div className="">
-            <p>hello from listing</p>
-          </div>
+          <FavoriteListings />
         </div>
       </section>
     </div>

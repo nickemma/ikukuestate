@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import LoadingSpinner from "./LoadingSpinner";
 import ErrorMessage from "./ErrorMessage";
-import DiscoverListing from "./DiscoverListing";
+import PropertiesByRegion from "./PropertiesByRegion";
 import { useEffect, useState } from "react";
 import { API_URL } from "../config/Api";
 
@@ -50,7 +50,7 @@ const RegionDetails = () => {
         </h1>
       </div>
 
-      <DiscoverListing />
+      <PropertiesByRegion />
     </div>
   );
 };

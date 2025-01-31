@@ -20,6 +20,9 @@ import AdminLayout from "./components/Admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProperties from "./pages/admin/Properties";
 import AdminUsers from "./pages/admin/Users";
+import CreateRegions from "./pages/admin/CreateRegions";
+import CreateProperty from "./pages/admin/CreateProperty";
+import Regions from "./pages/admin/Regions";
 
 const App = () => {
   return (
@@ -58,7 +61,10 @@ const App = () => {
             }
           >
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="region" element={<CreateRegions />} />
+            <Route path="create" element={<CreateProperty />} />
             <Route path="properties" element={<AdminProperties />} />
+            <Route path="regions" element={<Regions />} />
             <Route path="users" element={<AdminUsers />} />
           </Route>
         </Routes>

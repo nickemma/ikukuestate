@@ -7,6 +7,7 @@ import { config } from "../config/app.config";
 import User from "../database/models/user.model";
 import Property from "../database/models/property.model";
 import Region from "../database/models/region.model";
+import mongoose from "mongoose";
 
 const resend = new Resend(config.RESEND_API_KEY);
 /*
@@ -291,4 +292,27 @@ export const getPropertiesByRegion = asyncHandler(async (req, res) => {
   );
 
   res.status(HTTPSTATUS.OK).json(properties);
+});
+
+/*
+ * @route   GET api/admin/properties/search
+ * @desc    Get similar properties
+ * @access  Public
+ */
+
+export const getSimilarProperties = asyncHandler(async (req, res) => {
+  const { region, propertyType } = req.query;
+
+  try {
+    const properties = await Property.find({
+      $or: [
+        { region: new mongoose.Types.ObjectId(region as string) },
+        { propertyType },
+      ],
+    }).limit(6);
+
+    res.status(200).json(properties);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch similar properties" });
+  }
 });

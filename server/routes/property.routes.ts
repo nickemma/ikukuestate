@@ -6,6 +6,7 @@ import {
   deleteProperty,
   getPropertiesByRegion,
   getAllProperties,
+  getSimilarProperties,
 } from "../controllers/property.controller";
 import { upload } from "../middleware/multer";
 import { protect, admin } from "../middleware/auth.middleware";
@@ -25,6 +26,9 @@ router.get("/properties", getAllProperties);
 
 // @route GET /api/v1/admin/properties
 router.get("/properties/region/:regionId", getPropertiesByRegion);
+
+// @route GET /api/admin/properties/:id
+router.get("/properties/similar", getSimilarProperties);
 
 // @route GET /api/admin/properties/:id
 router.get("/properties/:id", getPropertyById);

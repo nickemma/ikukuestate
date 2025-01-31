@@ -1,28 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import featuredListings from "../api/listing.json";
 import Slider from "react-slick";
 import { FaBed, FaBath, FaHome, FaVectorSquare, FaHeart } from "react-icons/fa";
 import SimilarListing from "./SimilarListing";
 import axios from "axios";
 import { API_URL } from "../config/Api";
 import { toast } from "react-toastify";
+import { useFavorites } from "../context/FavoriteContext";
+
+import LoadingSpinner from "./LoadingSpinner";
+import ErrorMessage from "./ErrorMessage";
 
 const ListingDetailsPage = () => {
   const { id } = useParams();
-  const listingId = parseInt(id, 10);
-  const listing = featuredListings?.find((listing) => listing.id === listingId);
-
-  const getSimilarListings = (reference, listings) => {
-    return listings.filter((listing) => {
-      return (
-        listing?.id !== reference?.id &&
-        listing?.propertyType === reference?.propertyType
-      );
-    });
-  };
-
-  const similarListings = getSimilarListings(listing, featuredListings);
+  const { state, addFavorite, removeFavorite } = useFavorites();
+  const [property, setProperty] = useState(null);
+  const [similarProperties, setSimilarProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -32,8 +27,30 @@ const ListingDetailsPage = () => {
     message: "",
     consent: false,
   });
-  const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const fetchProperty = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/admin/properties/${id}`);
+        setProperty(response.data);
+
+        // Fetch similar properties based on region or property type
+        const similarResponse = await axios.get(
+          `${API_URL}/admin/properties/similar?region=${response.data.region._id}&propertyType=${response.data.propertyType}`
+        );
+        setSimilarProperties(similarResponse.data);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to load property");
+        toast.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperty();
+  }, [error, id]);
+
+  // handler for the form
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -42,6 +59,7 @@ const ListingDetailsPage = () => {
     });
   };
 
+  // handler for the form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -70,10 +88,6 @@ const ListingDetailsPage = () => {
       setLoading(false);
     }
   };
-
-  if (!listing) {
-    return <div>Listing not found</div>;
-  }
 
   // Slider settings
   const sliderSettings = {
@@ -106,29 +120,48 @@ const ListingDetailsPage = () => {
     ],
   };
 
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
+
+  const handleFavoriteClick = async () => {
+    const isFavorite = state.favorites.some((fav) => fav._id === property._id);
+
+    if (isFavorite) {
+      removeFavorite(property._id);
+    } else {
+      addFavorite(property);
+    }
+  };
+
   return (
     <div className="container mx-auto mt-20 p-4">
       {/* Title and Location */}
       <div className="relative flex justify-between items-center px-8 mb-8">
         <div className="mt-4">
-          <h1 className="text-2xl font-bold">{listing?.name}</h1>
-          <p className="text-gray-500">{listing?.location}</p>
+          <h1 className="text-2xl font-bold">{property?.name}</h1>
+          <p className="text-gray-500">{property?.location}</p>
         </div>
 
         {/* Price */}
         <div className="mb-4">
           <div className="mb-4 flex items-center justify-center gap-2">
             {/* Heart Icon */}
-            <button className="flex items-center">
+            <button onClick={handleFavoriteClick} className="flex items-center">
               <FaHeart
-                className={`w-4 h-4 ${"text-red-600"}`}
-                aria-label={"Remove from favorites Add to favorites"}
+                className={`w-6 h-6 ${
+                  state.favorites ? "text-red-600" : "text-gray-400"
+                }`}
+                aria-label={
+                  state.favorites ? "Remove from favorites" : "Add to favorites"
+                }
               />
+              <p className="ml-2 text-[1rem] font-medium text-red-600">
+                {state.favorites ? "Saved" : "Save Listing"}
+              </p>
             </button>
-            <p className="text-[1rem] font-medium text-red-600">Save Listing</p>
           </div>
           <p className="text-xl font-medium text-red-600">
-            ₦{listing?.price?.toLocaleString()}
+            ₦{property?.price?.toLocaleString()}
           </p>
           {/* handler favorites here */}
         </div>
@@ -137,7 +170,7 @@ const ListingDetailsPage = () => {
       {/* Image Carousel */}
       <section className="mb-8">
         <Slider {...sliderSettings}>
-          {listing.images.map((image, index) => (
+          {property.images.map((image, index) => (
             <div key={index} className="px-4">
               <img
                 src={image}
@@ -156,22 +189,22 @@ const ListingDetailsPage = () => {
           <div className="flex flex-wrap justify-start mb-8">
             <span className="flex items-center m-3">
               <FaBed className="mr-1 text-3xl" />
-              <b className="text-lg">{listing?.beds}</b>
+              <b className="text-lg">{property?.beds}</b>
               <span className="ml-1 text-gray-700">Beds</span>
             </span>
             <span className="flex items-center m-3">
               <FaBath className="mr-1 text-3xl" />
-              <b className="text-lg">{listing?.baths}</b>
+              <b className="text-lg">{property?.baths}</b>
               <span className="ml-1 text-gray-700">Baths</span>
             </span>
             <span className="flex items-center m-3">
               <FaVectorSquare className="mr-1 text-3xl" />
-              <b className="text-lg">{listing?.sqft.toLocaleString()}</b>
+              <b className="text-lg">{property?.sqft.toLocaleString()}</b>
               <span className="ml-1 text-gray-700">Sqft.</span>
             </span>
             <span className="flex items-center m-3">
               <FaHome className="mr-1 text-3xl" />
-              <b className="text-lg">{listing?.propertyType}</b>
+              <b className="text-lg">{property?.propertyType}</b>
               <span className="ml-1 text-gray-700">Type</span>
             </span>
           </div>
@@ -179,16 +212,16 @@ const ListingDetailsPage = () => {
           <h2 className="text-xl text-red-600 font-semibold mb-4">
             Property Description
           </h2>
-          <p className="text-gray-700 mb-4">{listing?.description}</p>
+          <p className="text-gray-700 mb-4">{property?.description}</p>
           <h2 className="text-xl text-red-600 font-semibold mb-4">
             Property Details
           </h2>
-          <p className="text-gray-700 mb-4">{listing?.propertyDetails}</p>
+          <p className="text-gray-700 mb-4">{property?.propertyDetails}</p>
 
           <h3 className="text-lg font-semibold mb-2 text-red-600">
             Property Features
           </h3>
-          <p>{listing?.features}</p>
+          <p>{property?.features}</p>
         </div>
 
         {/* Schedule a Tour Form */}
@@ -319,7 +352,7 @@ const ListingDetailsPage = () => {
         </div>
       </div>
       {/* similar listing */}
-      <SimilarListing similarListings={similarListings} />
+      <SimilarListing similarProperties={similarProperties} />
     </div>
   );
 };

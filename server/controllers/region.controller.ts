@@ -3,6 +3,7 @@ import { HTTPSTATUS } from "../config/http.config";
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "../config/app.config";
 import Region from "../database/models/region.model";
+import { console } from "inspector";
 
 /*
  * @route   POST api/admin/regions
@@ -11,17 +12,23 @@ import Region from "../database/models/region.model";
  */
 
 export const createRegion = asyncHandler(async (req, res) => {
-  const { city, image } = req.body;
+  const { city } = req.body;
 
-  // Check if all required fields are provided
-  if (!city || !image) {
+  if (!city) {
     return res
       .status(HTTPSTATUS.BAD_REQUEST)
       .json({ message: "All fields are required" });
   }
 
+  if (!req.file) {
+    // Change to check req.file
+    return res
+      .status(HTTPSTATUS.BAD_REQUEST)
+      .json({ message: "At least one image is required" });
+  }
+
   // Upload image to Cloudinary
-  const uploadedImage = await cloudinary.uploader.upload(image, {
+  const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
     folder: "ikukuestate",
     transformation: [
       { quality: "auto", fetch_format: "auto" },

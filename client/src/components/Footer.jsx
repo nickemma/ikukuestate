@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom";
 import {
   FaFacebook,
   FaTwitter,
@@ -8,6 +9,14 @@ import {
 import { TiSocialYoutubeCircular } from "react-icons/ti";
 
 export default function Footer() {
+  const location = useLocation();
+
+  // Check if the current path is the admin path (adjust as necessary)
+  const isAdminPage = location.pathname.startsWith("/admin");
+
+  // Return null to not render the footer if on the admin page
+  if (isAdminPage) return null;
+
   return (
     <footer className="bg-gray-200 p-10">
       <div className="flex flex-wrap justify-between mb-10">

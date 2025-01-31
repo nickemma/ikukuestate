@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { FaHeart } from "react-icons/fa";
 
-const SimilarListing = ({ similarListings }) => {
+const SimilarListing = ({ similarProperties }) => {
   return (
     <section className="container mx-auto px-4 py-8">
       <div className="mb-4">
@@ -12,12 +12,12 @@ const SimilarListing = ({ similarListings }) => {
         </h3>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-4">
-        {similarListings?.map((listing) => (
+        {similarProperties?.map((listing) => (
           <article
-            key={listing?.id}
+            key={listing?._id}
             className="bg-gray-200 rounded-md shadow-sm overflow-hidden cursor-pointer"
           >
-            <Link to={`/properties/${listing.id}`}>
+            <Link to={`/properties/${listing._id}`}>
               <figure className="overflow-hidden">
                 <img
                   src={listing?.images[0]}
@@ -79,9 +79,8 @@ const SimilarListing = ({ similarListings }) => {
   );
 };
 SimilarListing.propTypes = {
-  similarListings: PropTypes.arrayOf(
+  similarProperties: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.number.isRequired,
       images: PropTypes.arrayOf(PropTypes.string).isRequired,
       name: PropTypes.string.isRequired,
       price: PropTypes.number.isRequired,
