@@ -93,13 +93,13 @@ export const getRegionById = asyncHandler(async (req, res) => {
  */
 
 export const updateRegion = asyncHandler(async (req, res) => {
-  const { city, image } = req.body;
+  const { city } = req.body;
 
-  // Check if all required fields are provided
-  if (!city || !image) {
+  // Check if the city field is provided
+  if (!city) {
     return res
       .status(HTTPSTATUS.BAD_REQUEST)
-      .json({ message: "All fields are required" });
+      .json({ message: "City is required" });
   }
 
   const region = await Region.findById(req.params.id);
@@ -110,23 +110,30 @@ export const updateRegion = asyncHandler(async (req, res) => {
       .json({ message: "Region not found" });
   }
 
-  // Upload new images if provided
-  let imagesUrl = region.image; // Keep existing images by default
-
-  // Upload image to Cloudinary
-  const uploadedImage = await cloudinary.uploader.upload(image, {
-    folder: "ikukuestate",
-    transformation: [
-      { quality: "auto", fetch_format: "auto" },
-      { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
-    ],
-  });
-
-  imagesUrl = uploadedImage.secure_url;
-
+  // Update the city
   region.city = city;
-  region.image = imagesUrl;
 
+  // Check if a new image is provided
+  if (req.file) {
+    // Upload the new image to Cloudinary
+    const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
+      folder: "ikukuestate",
+      transformation: [
+        { quality: "auto", fetch_format: "auto" },
+        { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
+      ],
+    });
+
+    // Delete the old image from Cloudinary (if it exists)
+    if (region.image) {
+      await cloudinary.uploader.destroy(region.image); // Delete the old image
+    }
+
+    // Update the region's image URL
+    region.image = uploadedImage.secure_url;
+  }
+
+  // Save the updated region
   await region.save();
 
   res.status(HTTPSTATUS.OK).json({
@@ -134,7 +141,6 @@ export const updateRegion = asyncHandler(async (req, res) => {
     data: region,
   });
 });
-
 /*
  * @route   DELETE api/admin/regions/:id
  * @desc    Delete a region

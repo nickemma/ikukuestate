@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { API_URL } from "../../config/Api";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
-const CreateRegions = () => {
+const EditRegion = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [city, setCity] = useState("");
@@ -11,6 +12,23 @@ const CreateRegions = () => {
   const [imagePreview, setImagePreview] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Fetch region details
+  useEffect(() => {
+    const fetchRegion = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/admin/regions/${id}`);
+        const { city, image } = response.data.data;
+        setCity(city);
+        setImagePreview(image);
+      } catch (error) {
+        console.error("Failed to fetch region:", error);
+        setError("Failed to fetch region. Please try again.");
+      }
+    };
+
+    fetchRegion();
+  }, [id]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -23,39 +41,40 @@ const CreateRegions = () => {
     setError("");
     setSuccess("");
 
-    if (!city || !image) {
+    if (!city || (!image && !imagePreview)) {
       setError("All fields are required.");
       return;
     }
 
     const formData = new FormData();
     formData.append("city", city);
-    formData.append("image", image);
+    if (image) {
+      formData.append("image", image);
+    }
 
     try {
-      const token = localStorage.getItem("token"); // Retrieve the token from local storage
-      const response = await axios.post(`${API_URL}/admin/regions`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`, // Include token in headers
-        },
-      });
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${API_URL}/admin/regions/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setSuccess(response.data.message);
       navigate("/admin/regions");
-      setCity("");
-      setImage(null);
-      setImagePreview("");
     } catch (error) {
-      console.error(error);
-      setError("Error creating region."); // Handle error
+      console.error("Failed to update region:", error);
+      setError("Failed to update region. Please try again.");
     }
   };
 
   return (
     <div className="max-w-full mx-auto p-4 sm:p-6 bg-gray-100 rounded-lg shadow-md w-full md:w-[40rem]">
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        Create a New Region
-      </h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">Edit Region</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         {success && (
@@ -105,13 +124,13 @@ const CreateRegions = () => {
         </div>
         <button
           type="submit"
-          className="text-xl flex items-center mx-auto mb-12 bg-red-500 text-white p-2 rounded hover:bg-red-600"
+          className="w-full bg-red-600 text-white font-semibold p-2 sm:p-3 rounded-md hover:bg-red-700 transition duration-200"
         >
-          Create Region
+          Update Region
         </button>
       </form>
     </div>
   );
 };
 
-export default CreateRegions;
+export default EditRegion;

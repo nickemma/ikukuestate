@@ -1,6 +1,6 @@
 /* styles.css */
-@media (min-width: 375px) and (max-width: 600px) {
+@media (min-width: 375px) and (max-width: 765px) {
   .responsive-container {
-    margin-left: 3.2rem;
+    width: auto;
   }
 }

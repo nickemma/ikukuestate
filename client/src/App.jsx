@@ -17,6 +17,8 @@ import EmailVerification from "./components/EmailVerification";
 
 // Admin Routes
 import AdminLayout from "./components/Admin/AdminLayout";
+import EditRegion from "./components/Admin/EditRegion";
+import EditProperty from "./components/Admin/EditProperty";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProperties from "./pages/admin/Properties";
 import AdminUsers from "./pages/admin/Users";
@@ -66,6 +68,11 @@ const App = () => {
             <Route path="properties" element={<AdminProperties />} />
             <Route path="regions" element={<Regions />} />
             <Route path="users" element={<AdminUsers />} />
+            <Route path="/admin/regions/edit/:id" element={<EditRegion />} />
+            <Route
+              path="/admin/properties/edit/:id"
+              element={<EditProperty />}
+            />
           </Route>
         </Routes>
       </main>
