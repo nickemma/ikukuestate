@@ -1,5 +1,6 @@
+import { Request, Response } from "express";
 import crypto from "crypto";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { config } from "../config/app.config";
 import { asyncHandler } from "../middleware/asyncHandler";
@@ -8,20 +9,16 @@ import { HTTPSTATUS } from "../config/http.config";
 import { Resend } from "resend";
 import { verifyEmailTemplate, passwordResetTemplate } from "../mailer/template";
 
+import { generateTokens } from "../util/generateTokens";
+import { AuthenticatedRequest } from "types/express";
+
 const resend = new Resend(config.RESEND_API_KEY);
 
-/*
- * @desc    Generate a token
- * @access  Private
- */
+interface TokenPayload {
+  id: string;
+}
+
 const secretKey = config.JWT.JWT_SECRET;
-const tokenExpiration = config.JWT.JWT_EXPIRES_IN;
-// Utility function to generate JWT token
-const generateToken = (user: { _id: string; role: string }) => {
-  return jwt.sign({ id: user._id, role: user.role }, secretKey, {
-    expiresIn: tokenExpiration,
-  });
-};
 
 /*
  * @route   POST api/auth/register
@@ -29,7 +26,7 @@ const generateToken = (user: { _id: string; role: string }) => {
  * @access  Public
  */
 
-export const register = asyncHandler(async (req, res) => {
+export const register = asyncHandler(async (req: Request, res: Response) => {
   const { firstName, lastName, email, password, role } = req.body;
 
   // Check if all fields are provided
@@ -58,6 +55,12 @@ export const register = asyncHandler(async (req, res) => {
     verificationToken,
   });
 
+  // Generate tokens
+  const { accessToken, refreshToken } = generateTokens({
+    _id: newUser._id.toString(),
+    role: newUser.role,
+  });
+
   const verificationUrl = `${config.APP_ORIGIN}/verify-email/${verificationToken}`;
 
   await resend.emails.send({
@@ -67,10 +70,34 @@ export const register = asyncHandler(async (req, res) => {
     html: verifyEmailTemplate(verificationUrl).html,
   });
 
+  // Save refresh token to the user's document
+  newUser.refreshTokens.push({
+    token: refreshToken,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
+  await newUser.save();
+
+  // Set cookies for access and refresh tokens
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+    sameSite: "strict",
+    maxAge: 15 * 60 * 1000, // 15 minutes
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+
   // Respond with the created user (excluding sensitive information)
   res.status(HTTPSTATUS.CREATED).json({
     message:
       "User registered successfully. Please verify your email to log in.",
+    accessToken,
+    refreshToken,
     user: {
       id: newUser._id,
       firstName: newUser.firstName,
@@ -119,20 +146,45 @@ export const login = asyncHandler(async (req, res) => {
   }
 
   // Step 5: Generate a token for the user upon successful login
-  const token = generateToken({ _id: user._id.toString(), role: user.role });
+  const { accessToken, refreshToken } = generateTokens({
+    _id: user._id.toString(),
+    role: user.role,
+  });
+
+  // Save refresh token to the user's document
+  user.refreshTokens.push({
+    token: refreshToken,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
+  await user.save();
+
+  // Set cookies for access and refresh tokens
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+    sameSite: "strict",
+    maxAge: 15 * 60 * 1000, // 15 minutes
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
 
   // Step 6: Respond with user data (excluding sensitive info) and the token
   res.status(HTTPSTATUS.OK).json({
     message: "User logged in successfully",
+    accessToken,
+    refreshToken,
     user: {
       id: user._id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       phone: user.phone,
-      role: user.role,
     },
-    token,
   });
 });
 
@@ -142,16 +194,21 @@ export const login = asyncHandler(async (req, res) => {
  * @access  Private
  */
 
-export const getUserProfile = asyncHandler(async (req, res) => {
-  const userId = (req as any).user?.id;
-  const user = await User.findById(userId).select("-password");
-  if (!user) {
-    res.status(HTTPSTATUS.NOT_FOUND);
-    throw new Error("User not found");
-  }
+export const getUserProfile = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user?.id;
+    const user = await User.findById(userId).select(
+      "-password -refreshTokens -verificationToken -resetPasswordToken -resetPasswordExpires"
+    );
 
-  res.status(HTTPSTATUS.OK).json(user);
-});
+    if (!user) {
+      res.status(HTTPSTATUS.NOT_FOUND);
+      throw new Error("User not found");
+    }
+
+    res.status(HTTPSTATUS.OK).json(user);
+  }
+);
 
 /*
  * @route   PUT api/auth/change-password
@@ -159,45 +216,40 @@ export const getUserProfile = asyncHandler(async (req, res) => {
  * @access  Private
  */
 
-export const changePassword = asyncHandler(async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
+export const changePassword = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { oldPassword, newPassword } = req.body;
 
-  // Step 1: Validate if both old and new passwords are provided
-  if (!oldPassword || !newPassword) {
-    res.status(HTTPSTATUS.BAD_REQUEST);
-    throw new Error("Please provide both old and new password");
+    // Validate input
+    if (!oldPassword || !newPassword) {
+      res.status(HTTPSTATUS.BAD_REQUEST);
+      throw new Error("Please provide both old and new password");
+    }
+
+    const userId = req.user?.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(HTTPSTATUS.NOT_FOUND);
+      throw new Error("User not found");
+    }
+
+    // Check if the old password matches
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      res.status(HTTPSTATUS.BAD_REQUEST);
+      throw new Error("Invalid old password");
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    res
+      .status(HTTPSTATUS.OK)
+      .json({ message: "Password changed successfully" });
   }
-
-  // Step 2: Get user ID from the request object (assuming user is authenticated)
-  const userId = (req as any).user?.id;
-
-  // Step 3: Find the user by ID in the database
-  const user = await User.findById(userId);
-  if (!user) {
-    // If user not found, respond with an error
-    res.status(HTTPSTATUS.NOT_FOUND);
-    throw new Error("User not found");
-  }
-
-  // Step 4: Check if the old password matches the stored password
-  const isMatch = await bcrypt.compare(oldPassword, user.password);
-  if (!isMatch) {
-    // If old password does not match, respond with an error
-    res.status(HTTPSTATUS.BAD_REQUEST);
-    throw new Error("Invalid old password");
-  }
-
-  // Step 5: Update the user password with the new password
-  user.password = newPassword;
-
-  // Step 6: Save the updated user object
-  await user.save();
-
-  // Step 7: Respond with a success message
-  res.status(HTTPSTATUS.OK).json({
-    message: "Password changed successfully",
-  });
-});
+);
 
 /*
  * @route   PUT api/auth/update
@@ -205,33 +257,36 @@ export const changePassword = asyncHandler(async (req, res) => {
  * @access  Private
  */
 
-export const updateUser = asyncHandler(async (req, res) => {
-  const userId = (req as any).user?.id;
-  const { firstName, lastName, phone } = req.body;
+export const updateUser = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user?.id;
+    const { firstName, lastName, phone } = req.body;
 
-  const user = await User.findById(userId);
-  if (!user) {
-    res.status(HTTPSTATUS.NOT_FOUND);
-    throw new Error("User not found");
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(HTTPSTATUS.NOT_FOUND);
+      throw new Error("User not found");
+    }
+
+    // Update fields if provided
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    user.phone = phone || user.phone;
+
+    await user.save();
+
+    res.status(HTTPSTATUS.OK).json({
+      message: "User profile updated successfully",
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+      },
+    });
   }
-
-  user.firstName = firstName || user.firstName;
-  user.lastName = lastName || user.lastName;
-  user.phone = phone || user.phone;
-
-  await user.save();
-
-  res.status(HTTPSTATUS.OK).json({
-    message: "User profile updated successfully",
-    user: {
-      id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email, // email cannot be updated
-      phone: user.phone,
-    },
-  });
-});
+);
 
 /*
  * @route   POST api/auth/forgot-password
@@ -239,89 +294,92 @@ export const updateUser = asyncHandler(async (req, res) => {
  * @access  Public
  */
 
-export const forgotPassword = asyncHandler(async (req, res) => {
-  const { email } = req.body;
+export const forgotPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email } = req.body;
 
-  // Check if user exists
-  const user = await User.findOne({ email });
-  if (!user) {
-    res.status(HTTPSTATUS.NOT_FOUND);
-    throw new Error("User not found");
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(HTTPSTATUS.NOT_FOUND);
+      throw new Error("User not found");
+    }
+
+    // Generate reset token
+    const resetToken = jwt.sign({ id: user._id }, config.JWT.JWT_SECRET, {
+      expiresIn: "30m", // Token expires in 30 minutes
+    });
+
+    // Save hashed token and expiry in the database
+    user.resetPasswordToken = bcrypt.hashSync(resetToken, 10);
+    user.resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+    await user.save();
+
+    // Send reset email
+    const resetUrl = `${config.APP_ORIGIN}/reset-password?token=${resetToken}`;
+    const { error } = await resend.emails.send({
+      from: "Admin <onboarding@resend.dev>",
+      to: [user.email],
+      subject: "Reset your password",
+      html: passwordResetTemplate(resetUrl).html,
+    });
+
+    if (error) {
+      res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR);
+      throw new Error("Failed to send reset email");
+    }
+
+    res.status(HTTPSTATUS.OK).json({ message: "Password reset email sent" });
   }
-  // Generate reset token (include an expiration mechanism)
-  const resetToken = generateToken({
-    _id: user._id.toString(),
-    role: user.role,
-  }); // Token logic
+);
 
-  user.resetPasswordToken = bcrypt.hashSync(resetToken, 10); // Save hashed token in DB
-  user.resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000); // Set expiry to 30 mins
-  await user.save();
+export const resetPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { newPassword } = req.body;
+    const { resetToken } = req.params;
 
-  const resetUrl = `${config.APP_ORIGIN}/reset-password?token=${resetToken}`;
+    if (!resetToken || !newPassword) {
+      res.status(HTTPSTATUS.BAD_REQUEST);
+      throw new Error("Token and new password are required");
+    }
 
-  // Send reset email
-  const { data, error } = await resend.emails.send({
-    from: "Admin <onboarding@resend.dev>",
-    to: [user.email],
-    subject: "Reset your password",
-    html: passwordResetTemplate(resetUrl).html,
-  });
+    // Verify token
+    const decoded = jwt.verify(resetToken, config.JWT.JWT_SECRET) as {
+      id: string;
+    };
+    const user = await User.findById(decoded.id);
 
-  if (error) {
-    res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR);
-    throw new Error("Failed to send reset email");
+    if (!user || !user.resetPasswordToken || !user.resetPasswordExpires) {
+      res.status(HTTPSTATUS.BAD_REQUEST);
+      throw new Error("Invalid or expired token");
+    }
+
+    // Check if the token matches and is not expired
+    const isTokenValid = await bcrypt.compare(
+      resetToken,
+      user.resetPasswordToken
+    );
+    if (!isTokenValid || user.resetPasswordExpires < new Date()) {
+      res.status(HTTPSTATUS.BAD_REQUEST);
+      throw new Error("Invalid or expired token");
+    }
+
+    // Update password and clear reset token fields
+    user.password = newPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(HTTPSTATUS.OK).json({ message: "Password reset successfully" });
   }
-
-  res
-    .status(HTTPSTATUS.OK)
-    .json({ message: "Password reset email sent", data });
-});
-
-/*
- * @route   PUT api/auth/reset-password/:token
- * @desc    Reset user password
- * @access  Public
- */
-
-function isJwtPayload(obj: any): obj is JwtPayload {
-  return typeof obj === "object" && obj !== null;
-}
-
-export const resetPassword = asyncHandler(async (req, res) => {
-  const { newPassword } = req.body;
-  const token = req.params.resetToken; // Extract token from route
-
-  if (!token || !newPassword) {
-    res.status(HTTPSTATUS.BAD_REQUEST);
-    throw new Error("Token and new password are required");
-  }
-
-  const decoded = jwt.verify(token, config.JWT.JWT_SECRET); // Decode token
-
-  if (!isJwtPayload(decoded) || !decoded.id) {
-    res.status(HTTPSTATUS.BAD_REQUEST);
-    throw new Error("Invalid token payload");
-  }
-  const user = await User.findById(decoded.id);
-
-  if (!user) {
-    res.status(HTTPSTATUS.BAD_REQUEST);
-    throw new Error("Invalid or expired token");
-  }
-
-  user.password = newPassword;
-  await user.save();
-
-  res.status(HTTPSTATUS.OK).json({ message: "Password reset successfully" });
-});
+);
 
 /*
  * @route   POST api/auth/verify-email
  * @desc    Verify user email
  * @access  Public
  */
-export const verifyEmail = asyncHandler(async (req, res) => {
+
+export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   const { token } = req.params;
 
   const user = await User.findOne({ verificationToken: token });
@@ -330,8 +388,9 @@ export const verifyEmail = asyncHandler(async (req, res) => {
     throw new Error("Invalid or expired verification token");
   }
 
+  // Mark email as verified and clear the token
   user.emailVerified = true;
-  user.verificationToken = undefined; // Clear the token after verification
+  user.verificationToken = undefined;
   await user.save();
 
   res.status(HTTPSTATUS.OK).json({ message: "Email verified successfully" });
@@ -374,4 +433,87 @@ export const scheduleTour = asyncHandler(async (req, res) => {
   res.status(HTTPSTATUS.OK).json({
     message: "Tour scheduled successfully. Email sent to the admin.",
   });
+});
+
+// Refresh access token
+export const refreshToken = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+      res.status(HTTPSTATUS.BAD_REQUEST);
+      throw new Error("Refresh token is required");
+    }
+
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, secretKey) as TokenPayload;
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      res.status(HTTPSTATUS.BAD_REQUEST);
+      throw new Error("Invalid refresh token");
+    }
+
+    // Check if the refresh token is valid
+    const validRefreshToken = user.refreshTokens.find(
+      (token) => token.token === refreshToken && token.expiresAt! > new Date()
+    );
+
+    if (!validRefreshToken) {
+      res.status(HTTPSTATUS.BAD_REQUEST);
+      throw new Error("Invalid or expired refresh token");
+    }
+
+    // Generate new access token
+    // Generate new access token
+    const { accessToken } = generateTokens({
+      _id: user._id.toString(),
+      role: user.role,
+    });
+
+    // Set new access token cookie
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    // Respond with success message (without tokens in the response body)
+    res
+      .status(HTTPSTATUS.OK)
+      .json({ message: "Access token refreshed successfully" });
+  }
+);
+
+export const logout = asyncHandler(async (req: Request, res: Response) => {
+  const { refreshToken } = req.cookies;
+
+  if (!refreshToken) {
+    res.status(HTTPSTATUS.BAD_REQUEST);
+    throw new Error("Refresh token is required");
+  }
+
+  // Verify refresh token
+  const decoded = jwt.verify(
+    refreshToken,
+    config.JWT.JWT_SECRET
+  ) as TokenPayload;
+  const user = await User.findById(decoded.id);
+
+  if (!user) {
+    res.status(HTTPSTATUS.BAD_REQUEST);
+    throw new Error("Invalid refresh token");
+  }
+
+  // Remove the refresh token from the user's document using Mongoose's `pull` method
+  user.refreshTokens.pull({ token: refreshToken }); // Remove the token object matching the `token` field
+  await user.save();
+
+  // Clear cookies
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+
+  // Respond with success message
+  res.status(HTTPSTATUS.OK).json({ message: "Logout successful" });
 });

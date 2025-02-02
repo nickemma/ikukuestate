@@ -8,13 +8,6 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [error, setError] = useState(null);
 
-  // ✅ New: Function to login the user context
-  // const login = (userData, tokenData) => {
-  //   setUser(userData);
-  //   setToken(tokenData);
-  //   localStorage.setItem("user", JSON.stringify(userData));
-  //   localStorage.setItem("token", tokenData);
-  // };
   const login = async (userData, tokenData) => {
     try {
       setUser(userData);

@@ -61,6 +61,12 @@ const UserSchema = new mongoose.Schema(
     resetPasswordExpires: {
       type: Date, // Store the expiration date of the reset token
     },
+    refreshTokens: [
+      {
+        token: String,
+        expiresAt: Date,
+      },
+    ], // Array to store valid refresh tokens
   },
   {
     timestamps: true,

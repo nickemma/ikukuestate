@@ -1,3 +1,22 @@
+// {
+//   "compilerOptions": {
+//     "target": "ES2020",
+//     "module": "CommonJS",
+//     "moduleResolution": "node",
+//     "outDir": "./dist",
+//     "strict": true,
+//     "esModuleInterop": true,
+//     "skipLibCheck": true,
+//     "typeRoots": ["./node_modules/@types", "./types"], // Ensure this is correct
+//     "baseUrl": ".", // Add this to resolve paths
+//     "paths": {
+//       "*": ["types/*"] // Add this to resolve custom types
+//     }
+//   },
+//   "include": ["./**/*.ts", "src", "types"], // Ensure this includes your custom types
+//   "exclude": ["node_modules", "dist"]
+// }
+
 {
   "compilerOptions": {
     "target": "ES2020",
@@ -7,7 +26,11 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "typeRoots": ["./node_modules/@types", "./types"]
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "baseUrl": ".", // Add this to resolve paths
+   "paths": {
+  "types/*": ["types/*"]
+}
   },
   "include": ["./**/*.ts", "src", "types"],
   "exclude": ["node_modules", "dist"]

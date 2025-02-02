@@ -1,21 +1,14 @@
 import jwt from "jsonwebtoken";
-
+import { Request, Response, NextFunction } from "express";
 import { HTTPSTATUS } from "../config/http.config";
 import { config } from "../config/app.config";
 import { asyncHandler } from "./asyncHandler";
-import { Request, Response, NextFunction } from "express";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-  };
-}
+import { AuthenticatedRequest } from "../types/express";
 
 export const protect = asyncHandler(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    const cookieToken = req.cookies.token;
-    const token = cookieToken || req.headers.authorization?.split(" ")[1];
+    // Get token from cookies
+    const token = req.cookies.accessToken;
 
     if (!token) {
       res.status(HTTPSTATUS.UNAUTHORIZED);
@@ -23,16 +16,18 @@ export const protect = asyncHandler(
     }
 
     try {
+      // Verify token
       const decoded = jwt.verify(token, config.JWT.JWT_SECRET) as {
         id: string;
         role: string;
       };
 
+      // Attach user to the request object
       req.user = { id: decoded.id, role: decoded.role };
       next();
     } catch (error) {
-      res.status(401);
-      throw new Error("Invalid token");
+      res.status(HTTPSTATUS.UNAUTHORIZED);
+      throw new Error("Invalid or expired token");
     }
   }
 );
@@ -40,8 +35,8 @@ export const protect = asyncHandler(
 export const admin = asyncHandler(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user || req.user.role !== "admin") {
-      res.status(HTTPSTATUS.UNAUTHORIZED);
-      throw new Error("Unauthorized: Not an admin");
+      res.status(HTTPSTATUS.FORBIDDEN);
+      throw new Error("Forbidden: Not an admin");
     }
     next();
   }
