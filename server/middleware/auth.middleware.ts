@@ -1,36 +1,44 @@
 import jwt from "jsonwebtoken";
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import { HTTPSTATUS } from "../config/http.config";
 import { config } from "../config/app.config";
 import { asyncHandler } from "./asyncHandler";
 import { AuthenticatedRequest } from "../types/express";
 
-export const protect = asyncHandler(
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    // Get token from cookies
-    const token = req.cookies.accessToken;
+export const protect = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  let token;
 
-    if (!token) {
-      res.status(HTTPSTATUS.UNAUTHORIZED);
-      throw new Error("Unauthorized: No token provided");
-    }
-
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
     try {
-      // Verify token
+      token = req.headers.authorization.split(" ")[1];
+
       const decoded = jwt.verify(token, config.JWT.JWT_SECRET) as {
         id: string;
         role: string;
       };
 
-      // Attach user to the request object
       req.user = { id: decoded.id, role: decoded.role };
+
       next();
-    } catch (error) {
-      res.status(HTTPSTATUS.UNAUTHORIZED);
-      throw new Error("Invalid or expired token");
+    } catch (error: any) {
+      console.error("Token verification failed:", error.message);
+      res.status(401);
+      throw new Error("Not authorized, token failed");
     }
   }
-);
+
+  if (!token) {
+    res.status(401);
+    throw new Error("Not authorized, no token provided");
+  }
+};
 
 export const admin = asyncHandler(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

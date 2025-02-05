@@ -4,13 +4,13 @@ import axios from "axios";
 import { API_URL } from "../config/Api";
 
 const EmailVerification = () => {
-  const { token } = useParams();
+  const { accessToken } = useParams();
 
   useEffect(() => {
     const verifyEmail = async () => {
       try {
         const response = await axios.get(
-          `${API_URL}/auth/verify-email/${token}`
+          `${API_URL}/auth/verify-email/${accessToken}`
         );
         alert(response.data.message);
       } catch (error) {
@@ -19,7 +19,7 @@ const EmailVerification = () => {
     };
 
     verifyEmail();
-  }, [token]);
+  }, [accessToken]);
 
   return (
     <div className="mt-24 text-center text-2xl">

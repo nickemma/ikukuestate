@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { API_URL } from "../../config/Api";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const EditRegion = () => {
+  const { accessToken } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -53,14 +55,13 @@ const EditRegion = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.put(
         `${API_URL}/admin/regions/${id}`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         }
       );

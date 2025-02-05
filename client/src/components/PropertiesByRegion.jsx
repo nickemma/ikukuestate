@@ -43,7 +43,7 @@ const PropertiesByRegion = () => {
         <div className="mb-4">
           <h2 className="text-2xl text-red-500">FEATURED LISTINGS</h2>
           <h3 className="text-2xl font-medium italic">
-            We&apos;ll find the home, you&apos;ll write the stories
+            Find your dream home in this region
           </h3>
         </div>
         <Link to="/properties">

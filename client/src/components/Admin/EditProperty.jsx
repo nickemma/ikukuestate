@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { API_URL } from "../../config/Api";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const EditProperty = () => {
+  const { accessToken } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -122,14 +124,13 @@ const EditProperty = () => {
     uploadedImages.forEach((file) => payload.append("images", file)); // Append new images
 
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.put(
         `${API_URL}/admin/properties/${id}`,
         payload,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         }
       );

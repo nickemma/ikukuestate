@@ -2,8 +2,10 @@ import { useState } from "react";
 import axios from "axios";
 import { API_URL } from "../../config/Api";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const CreateRegions = () => {
+  const { accessToken } = useAuth();
   const navigate = useNavigate();
 
   const [city, setCity] = useState("");
@@ -33,11 +35,10 @@ const CreateRegions = () => {
     formData.append("image", image);
 
     try {
-      const token = localStorage.getItem("token"); // Retrieve the token from local storage
       const response = await axios.post(`${API_URL}/admin/regions`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`, // Include token in headers
+          Authorization: `Bearer ${accessToken}`, // Include token in headers
         },
       });
       setSuccess(response.data.message);

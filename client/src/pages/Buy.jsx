@@ -89,12 +89,8 @@ const Buy = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4 text-center">
-        Explore Properties
-      </h1>
-
       {/* Filters */}
-      <div className="flex flex-col items-center bg-gray-100 p-4 rounded-lg mb-6 mt-8">
+      <div className="flex flex-col items-center bg-gray-100 p-4 rounded-lg mb-6 mt-20">
         <h2 className="text-lg font-semibold mb-2">Explore Properties</h2>
         <div className="flex flex-wrap md:flex-nowrap gap-4">
           <select

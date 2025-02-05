@@ -1,10 +1,7 @@
 import { asyncHandler } from "../middleware/asyncHandler";
 import { HTTPSTATUS } from "../config/http.config";
 import { v2 as cloudinary } from "cloudinary";
-import { config } from "../config/app.config";
 import Region from "../database/models/region.model";
-import { console } from "inspector";
-
 /*
  * @route   POST api/admin/regions
  * @desc    Create a new region

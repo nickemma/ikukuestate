@@ -11,7 +11,7 @@ const appConfig = () => ({
   CLOUDINARY_API_SECRET: getEnv("CLOUDINARY_API_SECRET"),
   JWT: {
     JWT_SECRET: getEnv("JWT_SECRET"),
-    JWT_EXPIRES_IN: getEnv("JWT_EXPIRES_IN", "15m"),
+    JWT_EXPIRES_IN: getEnv("JWT_EXPIRES_IN", "1h"),
     JWT_REFRESH_TOKEN: getEnv("JWT_REFRESH_TOKEN", "7d"),
   },
 });

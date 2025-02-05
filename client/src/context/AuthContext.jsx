@@ -1,53 +1,153 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { API_URL } from "../config/Api";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [error, setError] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
 
-  const login = async (userData, tokenData) => {
+  const setAuthCookies = (accessToken, refreshToken) => {
+    Cookies.set("accessToken", accessToken, {
+      expires: 1 / 24, // set for 1 hour
+      secure: false, // Set to false for development
+      sameSite: "lax", // Use "lax" for development
+      path: "/", // Ensure the path is correct
+    });
+
+    Cookies.set("refreshToken", refreshToken, {
+      expires: 7, // 7 days
+      secure: false, // Set to false for development
+      sameSite: "lax", // Use "lax" for development
+      path: "/", // Ensure the path is correct
+    });
+  };
+
+  // Check for an existing user in localStorage on app initialization
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const storedAccessToken = localStorage.getItem("accessToken");
+
+    if (storedUser && storedAccessToken) {
+      setUser(JSON.parse(storedUser));
+      setAccessToken(storedAccessToken);
+    }
+  }, []);
+
+  // ✅ Login function: Store token in cookies & update user state
+  const login = async (userData, accessToken, refreshToken) => {
     try {
-      setUser(userData);
-      setToken(tokenData);
+      // Store the user data in localStorage
       localStorage.setItem("user", JSON.stringify(userData));
-      localStorage.setItem("token", tokenData);
+      // Store the access token in localStorage
+      localStorage.setItem("accessToken", accessToken);
+      // Store the access token and refresh token in cookies
+      setAuthCookies(accessToken, refreshToken);
+      setUser(userData);
+      setAccessToken(accessToken); // Store accessToken in state
       setError(null);
     } catch (err) {
-      setError("Failed to log in", err);
+      setError("Failed to log in");
+      console.error(err);
     }
   };
-  // ✅ New: Function to logout the user context
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+
+  // ✅ Refresh access token
+  const refreshAccessToken = async () => {
+    try {
+      const { data } = await axios.post(
+        `${API_URL}/auth/refresh-token`,
+        {},
+        { withCredentials: true }
+      );
+      // Update cookies with the new access token
+      Cookies.set("accessToken", data.accessToken, {
+        expires: 1 / 24, // 1 hour
+        secure: false,
+        sameSite: "lax",
+        path: "/",
+      });
+      // Update the access token in the state
+      setAccessToken(data.accessToken);
+      return data.accessToken;
+    } catch (err) {
+      console.error("Failed to refresh token", err);
+      logout(); // Log the user out if refreshing the token fails
+      return null;
+    }
   };
 
-  // ✅ New: Function to update the user context
+  // ✅ Update user context
   const updateUserContext = (updatedUser) => {
     setUser((prevUser) => ({
       ...prevUser,
       ...updatedUser, // Merge the new updates
     }));
-    localStorage.setItem("user", JSON.stringify({ ...user, ...updatedUser }));
+  };
+
+  // ✅ Logout function: Clear user state & remove token cookie
+  const logout = () => {
+    // Clear the user data from localStorage
+    localStorage.removeItem("user");
+    // Clear the access token from localStorage
+    localStorage.removeItem("accessToken");
+    // Clear the access token and refresh token from cookies
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
+    setUser(null);
+    setAccessToken(null); // Clear accessToken from state
+
+    // Redirect to home page after logout
+    window.location.href = "/"; // Or use `navigate("/")`
   };
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    const storedToken = localStorage.getItem("token");
-    if (storedUser && storedToken) {
-      setUser(storedUser);
-      setToken(storedToken);
-    }
+    const fetchUser = async () => {
+      try {
+        let accessToken;
+
+        // If no access token, try refreshing it
+        if (!accessToken) {
+          accessToken = await refreshAccessToken();
+        }
+
+        // If still no access token, log the user out
+        if (!accessToken) {
+          logout();
+          return;
+        }
+
+        // Fetch user data using the access token
+        const response = await axios.get(`${API_URL}/auth/profile`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          withCredentials: true,
+        });
+
+        setUser(response.data);
+        setAccessToken(accessToken); // Ensure accessToken is set in state
+      } catch (err) {
+        console.error("Failed to fetch user", err); // Log 7: Indicate an error occurred
+        logout();
+      }
+    };
+
+    fetchUser();
   }, []);
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, error, updateUserContext }}
+      value={{
+        user,
+        login,
+        accessToken,
+        updateUserContext,
+        logout,
+        error,
+      }}
     >
       {children}
     </AuthContext.Provider>

@@ -1,15 +1,23 @@
-import { createContext, useContext, useReducer, useEffect } from "react";
+import { createContext, useContext, useEffect, useReducer } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
 import { API_URL } from "../config/Api";
 import { toast } from "react-toastify";
+import { useAuth } from "./AuthContext";
 
 const FavoritesContext = createContext();
+
+const initialState = {
+  favorites: [], // Ensure this is initialized as an array
+};
 
 const favoritesReducer = (state, action) => {
   switch (action.type) {
     case "ADD_FAVORITE":
-      return { ...state, favorites: [...state.favorites, action.payload] };
+      return {
+        ...state,
+        favorites: [...state.favorites, action.payload],
+      };
     case "REMOVE_FAVORITE":
       return {
         ...state,
@@ -17,35 +25,56 @@ const favoritesReducer = (state, action) => {
       };
     case "SET_FAVORITES":
       return { ...state, favorites: action.payload };
-    case "SET_LOADING":
-      return { ...state, loading: action.payload };
     default:
       return state;
   }
 };
 
 export const FavoritesProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(favoritesReducer, {
-    favorites: [],
-    loading: false,
-  });
+  const { accessToken, user } = useAuth();
+  const [state, dispatch] = useReducer(favoritesReducer, initialState);
 
-  const addFavorite = async (propertyId) => {
+  // Fetch favorite listings when the user changes
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (user && user.favorites && user.favorites.length > 0) {
+        try {
+          // Fetch the favorite listings based on the user.favorites array
+          const response = await axios.get(`${API_URL}/favorites`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+            withCredentials: true, // Ensure credentials are sent
+          });
+
+          // Extract the array from the response
+          const favoritesArray = response.data.favorites;
+
+          dispatch({ type: "SET_FAVORITES", payload: favoritesArray });
+        } catch (error) {
+          console.error("Failed to fetch favorites:", error);
+        }
+      }
+    };
+
+    fetchFavorites();
+  }, [user, accessToken, dispatch]);
+
+  const addFavorite = async (property) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token available");
+      if (!accessToken) throw new Error("No token available");
 
       await axios.post(
         `${API_URL}/favorites`,
-        { propertyId },
+        { propertyId: property._id }, // Send propertyId to the backend
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         }
       );
 
-      dispatch({ type: "ADD_FAVORITE", payload: propertyId });
+      dispatch({ type: "ADD_FAVORITE", payload: property }); // Add the full property object to state
       toast.success("Added to favorites");
     } catch (error) {
       console.error(
@@ -60,12 +89,11 @@ export const FavoritesProvider = ({ children }) => {
 
   const removeFavorite = async (propertyId) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token available");
+      if (!accessToken) throw new Error("No token available");
 
       await axios.delete(`${API_URL}/favorites/${propertyId}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -81,14 +109,12 @@ export const FavoritesProvider = ({ children }) => {
   };
 
   const setFavorites = async () => {
-    dispatch({ type: "SET_LOADING", payload: true });
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token available");
+      if (!accessToken) throw new Error("No token available");
 
       const response = await axios.get(`${API_URL}/favorites`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
       dispatch({ type: "SET_FAVORITES", payload: response.data });
@@ -98,9 +124,6 @@ export const FavoritesProvider = ({ children }) => {
         "Error fetching favorites:",
         error.response?.data || error.message
       );
-      toast.error("Failed to load favorites.");
-    } finally {
-      dispatch({ type: "SET_LOADING", payload: false });
     }
   };
 

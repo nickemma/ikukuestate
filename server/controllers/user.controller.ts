@@ -51,6 +51,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     email,
     phone: req.body.phone,
     password,
+    favorites: [],
     role: role || "user", // Default role is set to "user"
     verificationToken,
   });
@@ -80,16 +81,18 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   // Set cookies for access and refresh tokens
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-    sameSite: "strict",
-    maxAge: 15 * 60 * 1000, // 15 minutes
+    secure: process.env.NODE_ENV === "production", // Use secure cookies only in production
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Use "lax" in development
+    maxAge: 60 * 60 * 1000, // 1 hour (60 minutes * 60 seconds * 1000 milliseconds)
+    path: "/", // Ensure the path is correct
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production", // Use secure cookies only in production
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Use "lax" in development
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    path: "/", // Ensure the path is correct
   });
 
   // Respond with the created user (excluding sensitive information)
@@ -104,6 +107,8 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
       lastName: newUser.lastName,
       email: newUser.email,
       phone: newUser.phone,
+      favorites: newUser.favorites,
+      role: newUser.role,
     },
   });
 });
@@ -161,16 +166,18 @@ export const login = asyncHandler(async (req, res) => {
   // Set cookies for access and refresh tokens
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-    sameSite: "strict",
-    maxAge: 15 * 60 * 1000, // 15 minutes
+    secure: process.env.NODE_ENV === "production", // Use secure cookies only in production
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Use "lax" in development
+    maxAge: 60 * 60 * 1000, // 1 hour (60 minutes * 60 seconds * 1000 milliseconds)
+    path: "/", // Ensure the path is correct
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production", // Use secure cookies only in production
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Use "lax" in development
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    path: "/", // Ensure the path is correct
   });
 
   // Step 6: Respond with user data (excluding sensitive info) and the token
@@ -184,6 +191,8 @@ export const login = asyncHandler(async (req, res) => {
       lastName: user.lastName,
       email: user.email,
       phone: user.phone,
+      favorites: user.favorites,
+      role: user.role,
     },
   });
 });
@@ -465,7 +474,6 @@ export const refreshToken = asyncHandler(
     }
 
     // Generate new access token
-    // Generate new access token
     const { accessToken } = generateTokens({
       _id: user._id.toString(),
       role: user.role,
@@ -474,15 +482,16 @@ export const refreshToken = asyncHandler(
     // Set new access token cookie
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      secure: process.env.NODE_ENV === "production", // Use secure cookies only in production
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Use "lax" in development
+      maxAge: 60 * 60 * 1000, // 1 hour (60 minutes * 60 seconds * 1000 milliseconds)
+      path: "/", // Ensure the path is correct
     });
 
     // Respond with success message (without tokens in the response body)
     res
       .status(HTTPSTATUS.OK)
-      .json({ message: "Access token refreshed successfully" });
+      .json({ message: "Access token refreshed successfully", accessToken });
   }
 );
 

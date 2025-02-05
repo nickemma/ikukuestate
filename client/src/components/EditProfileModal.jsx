@@ -6,7 +6,7 @@ import { API_URL } from "../config/Api";
 import { toast } from "react-toastify";
 
 const EditProfileModal = ({ onClose }) => {
-  const { user, updateUserContext } = useAuth();
+  const { user, accessToken, updateUserContext } = useAuth();
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
   const [phone, setPhone] = useState(user?.phone || "");
@@ -21,7 +21,7 @@ const EditProfileModal = ({ onClose }) => {
         `${API_URL}/auth/updateuser`,
         { firstName, lastName, phone },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
 
@@ -38,7 +38,7 @@ const EditProfileModal = ({ onClose }) => {
           { oldPassword, newPassword },
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Authorization: `Bearer ${accessToken}`,
             },
           }
         );

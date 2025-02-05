@@ -33,6 +33,17 @@ const About = () => {
           cutting-edge digital experience, I am driven by a desire to exceed
           expectations and make a lasting impact.
         </p>
+        {/* Certificate Image */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            Company Certification
+          </h2>
+          <img
+            src="/cert.jpg"
+            alt="Company Certificate"
+            className="mx-auto rounded-lg shadow-lg w-full max-w-md"
+          />
+        </div>
       </div>
     </div>
   );

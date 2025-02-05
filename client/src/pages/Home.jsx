@@ -23,7 +23,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
         {/* Hero Content */}
-        <div className="absolute flex flex-col items-start space-y-2 left-[16rem] top-[10rem] text-white text-[2.2rem] font-normal">
+        <div className="absolute flex flex-col items-start space-y-2 px-4 md:left-[16rem] md:top-[10rem] top-[5rem] text-white text-2xl md:text-[2.2rem] font-normal">
           <h2>
             Your window to the <br />
             <span className="italic">world&apos;s finest</span> real estate
@@ -31,7 +31,8 @@ const Home = () => {
         </div>
 
         {/* Explore Button */}
-        <div className="w-full max-w-[60rem] absolute flex flex-col items-start space-y-2 bottom-16 left-[16rem] text-white">
+        <div className="w-full max-w-[60rem] absolute flex flex-col items-start space-y-2 bottom-16 px-4 md:left-[16rem] text-white">
+          {/* Navigation Links */}
           <nav className="flex space-x-4 text-white">
             <a
               href="/properties"
@@ -48,29 +49,35 @@ const Home = () => {
               Sell
             </a>
           </nav>
+
           {/* Search Input */}
           <div className="relative flex items-center w-full max-w-3xl">
             <input
               type="text"
               id="txtKeyword"
-              className="w-full h-16 pl-4 pr-12 text-gray-800 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-blue-300"
+              className="w-full h-12 md:h-16 pl-4 pr-12 text-gray-800 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-blue-300"
               placeholder="Enter a location, address, or listing ID"
               aria-label="Search"
               autoComplete="off"
             />
             {/* Search Icon */}
-            <FaArrowRight className="absolute right-4  text-gray-500" />
+            <FaArrowRight className="absolute right-4 text-gray-500" />
           </div>
 
           {/* Explore Listings */}
-          <Link to="/properties" className="flex items-center space-x-2">
+          <Link
+            to="/properties"
+            className="flex items-center space-x-2 hover:text-red-500"
+          >
             <h3 className="text-lg">Explore Listings</h3>
-            <FaArrowRight className="text-2xl hover:text-red-500" />
+            <FaArrowRight className="text-2xl" />
           </Link>
         </div>
       </div>
+
       {/* Discover Region Section */}
       <DiscoverRegion />
+
       {/* Featured Listings Section */}
       <DiscoverListing />
     </>

@@ -26,30 +26,26 @@ const AuthModal = ({ onClose }) => {
   const handleSubmit = async () => {
     try {
       if (isSignUp) {
-        // Check if passwords match
         if (form.password !== form.confirmpassword) {
           return toast.error("Passwords do not match.");
         }
 
-        // Registration flow
-        const { data } = await axios.post(`${API_URL}/auth/register`, form);
-        console.log(data);
+        await axios.post(`${API_URL}/auth/register`, form);
         setIsVerificationSent(true);
         toast.success("Verification email sent. Please check your inbox.");
       } else {
-        // Login flow
         const { email, password } = form;
-        const { data } = await axios.post(`${API_URL}/auth/login`, {
-          email,
-          password,
-        });
-        // Store user data and token in local storage
-        localStorage.setItem("user", JSON.stringify(data.user));
-        localStorage.setItem("token", data.token);
+        const { data } = await axios.post(
+          `${API_URL}/auth/login`,
+          { email, password },
+          { withCredentials: true } // Important: Enables cookies
+        );
 
-        login(data.user, data.token);
+        // ✅ Store user data using AuthContext
+        login(data.user, data.accessToken, data.refreshToken);
         toast.success("Logged in successfully!");
-        // Redirect based on user role
+        console.log("Logged in user:", data.user);
+        console.log("User role:", data.user.role);
         navigate(
           data.user.role === "admin" ? "/admin/dashboard" : "/user/dashboard"
         );

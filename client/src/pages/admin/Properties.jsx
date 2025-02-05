@@ -5,8 +5,10 @@ import { FaEdit, FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ErrorMessage from "../../components/ErrorMessage";
+import { useAuth } from "../../context/AuthContext";
 
 const Properties = () => {
+  const { accessToken } = useAuth();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,10 +34,9 @@ const Properties = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this property?")) {
       try {
-        const token = localStorage.getItem("token");
         await axios.delete(`${API_URL}/admin/properties/${id}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         });
         // Remove the deleted property from the state

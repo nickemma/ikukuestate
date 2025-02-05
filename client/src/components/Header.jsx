@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FaArrowUp } from "react-icons/fa";
+import { FaArrowUp, FaBars, FaTimes } from "react-icons/fa"; // Import FaBars and FaTimes for the hamburger menu
 import { FiLogOut } from "react-icons/fi";
 import AuthModal from "../auth/AuthModal";
 import EditProfileModal from "./EditProfileModal";
@@ -12,11 +12,13 @@ const Header = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu toggle
   const location = useLocation();
-  const navigate = useNavigate(); // Add navigate hook
+  const navigate = useNavigate();
 
   const isHomePage = location.pathname === "/";
 
+  // Handle scroll event to toggle navbar background
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -26,6 +28,7 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Scroll to top function
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -38,18 +41,29 @@ const Header = () => {
     { name: "REGION", link: "/region" },
   ];
 
+  // Toggle user dropdown
   const handleDropdownToggle = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  // Redirect to dashboard based on user role
   const handleDashboardRedirect = () => {
-    // Check if user is admin and redirect accordingly
     if (user && user.role === "admin") {
-      navigate("/admin/dashboard"); // Redirect to admin dashboard
+      navigate("/admin/dashboard");
     } else {
-      navigate("/user/dashboard"); // Redirect to user dashboard
+      navigate("/user/dashboard");
     }
     setIsDropdownOpen(false);
+  };
+
+  // Toggle mobile menu
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  // Close mobile menu when a link or button is clicked
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -70,16 +84,30 @@ const Header = () => {
               <Link to="/">
                 <div className="flex items-center justify-center text-white">
                   <img
-                    src="/logo.jpg"
+                    src="/logo1.jpg"
                     alt="The Agency Logo"
-                    className="w-24 h-16 object-cover"
+                    className="w-32 h-24 object-cover"
                     loading="lazy"
                   />
                 </div>
               </Link>
 
-              {/* Navigation Links for non-admin users */}
-              <div className="flex items-center space-x-4">
+              {/* Hamburger Menu for Mobile */}
+              <div className="md:hidden">
+                <button
+                  onClick={toggleMobileMenu}
+                  className="text-black focus:outline-none"
+                >
+                  {isMobileMenuOpen ? (
+                    <FaTimes className="text-2xl" />
+                  ) : (
+                    <FaBars className="text-2xl" />
+                  )}
+                </button>
+              </div>
+
+              {/* Navigation Links for non-admin users (Desktop) */}
+              <div className="hidden md:flex items-center space-x-4">
                 {navLinks.map(({ name, link }) => (
                   <Link
                     key={name}
@@ -94,6 +122,8 @@ const Header = () => {
               </div>
             </>
           )}
+
+          {/* User Dropdown or Sign In Button (Desktop) */}
           {user ? (
             <button
               className="bg-red-600 text-white py-1 px-4 rounded"
@@ -104,14 +134,14 @@ const Header = () => {
                 <div className="flex flex-col items-start p-2 absolute right-4 mt-[1rem] w-40 bg-white shadow-lg rounded-md z-10">
                   <button
                     className="relative mb-2 text-lg text-black after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-0 after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full"
-                    onClick={handleDashboardRedirect} // Redirect based on user role
+                    onClick={handleDashboardRedirect}
                   >
                     Dashboard
                   </button>
                   <Link
                     to="#"
                     className="relative mb-2 text-lg text-black after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-0 after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full"
-                    onClick={() => setIsEditProfileModalOpen(true)} // Open edit profile modal
+                    onClick={() => setIsEditProfileModalOpen(true)}
                   >
                     Edit Profile
                   </Link>
@@ -130,23 +160,55 @@ const Header = () => {
             </button>
           ) : (
             <button
-              className="w-40 h-10 text-white bg-red-600 rounded-md"
+              className="hidden md:block w-40 h-10 text-white bg-red-600 rounded-md"
               onClick={() => setIsAuthModalOpen(true)}
             >
               Sign In / Sign Up
             </button>
           )}
-          {isAuthModalOpen && (
-            <AuthModal onClose={() => setIsAuthModalOpen(false)} />
-          )}
-          {/* Modal for Editing Profile */}
-          {isEditProfileModalOpen && (
-            <EditProfileModal
-              onClose={() => setIsEditProfileModalOpen(false)}
-            />
-          )}
         </div>
+
+        {/* Mobile Menu (Dropdown) */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white shadow-lg">
+            <div className="flex flex-col items-start px-8 py-4 space-y-4">
+              {/* Navigation Links */}
+              {navLinks.map(({ name, link }) => (
+                <Link
+                  key={name}
+                  to={link}
+                  className="relative text-lg text-black after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-0 after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full"
+                  onClick={closeMobileMenu} // Close the mobile menu when a link is clicked
+                >
+                  {name}
+                </Link>
+              ))}
+
+              {/* Sign In / Sign Up Button (Mobile) */}
+              {!user && (
+                <button
+                  className="bg-red-600 text-white py-1 px-4 rounded"
+                  onClick={() => {
+                    setIsAuthModalOpen(true);
+                    closeMobileMenu(); // Close the mobile menu when the button is clicked
+                  }}
+                >
+                  Sign In / Sign Up
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </nav>
+
+      {/* Modals */}
+      {isAuthModalOpen && (
+        <AuthModal onClose={() => setIsAuthModalOpen(false)} />
+      )}
+      {isEditProfileModalOpen && (
+        <EditProfileModal onClose={() => setIsEditProfileModalOpen(false)} />
+      )}
+
       {/* Scroll to Top Icon */}
       {isScrolled && (
         <button

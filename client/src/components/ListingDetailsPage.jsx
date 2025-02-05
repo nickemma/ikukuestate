@@ -18,6 +18,7 @@ const ListingDetailsPage = () => {
   const [similarProperties, setSimilarProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { favorites } = state;
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -124,12 +125,12 @@ const ListingDetailsPage = () => {
   if (error) return <ErrorMessage message={error} />;
 
   const handleFavoriteClick = async () => {
-    const isFavorite = state.favorites.some((fav) => fav._id === property._id);
+    const isFavorite = favorites.some((fav) => fav._id === property._id);
 
     if (isFavorite) {
-      removeFavorite(property._id);
+      await removeFavorite(property._id); // Pass the property ID to removeFavorite
     } else {
-      addFavorite(property);
+      await addFavorite(property); // Pass the full property object to addFavorite
     }
   };
 
@@ -149,14 +150,27 @@ const ListingDetailsPage = () => {
             <button onClick={handleFavoriteClick} className="flex items-center">
               <FaHeart
                 className={`w-6 h-6 ${
-                  state.favorites ? "text-red-600" : "text-gray-400"
+                  favorites && favorites.some((fav) => fav._id === property._id)
+                    ? "text-red-600"
+                    : "text-gray-400"
                 }`}
                 aria-label={
-                  state.favorites ? "Remove from favorites" : "Add to favorites"
+                  favorites && favorites.some((fav) => fav._id === property._id)
+                    ? "Remove from favorites"
+                    : "Add to favorites"
                 }
               />
-              <p className="ml-2 text-[1rem] font-medium text-red-600">
-                {state.favorites ? "Saved" : "Save Listing"}
+
+              <p
+                className={`ml-2 text-[1rem] font-medium ${
+                  favorites.some((fav) => fav._id === property._id)
+                    ? "text-red-600"
+                    : "text-gray-400"
+                }`}
+              >
+                {favorites.some((fav) => fav._id === property._id)
+                  ? "Saved"
+                  : "Save Listing"}
               </p>
             </button>
           </div>

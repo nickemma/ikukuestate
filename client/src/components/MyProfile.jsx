@@ -5,7 +5,7 @@ import { API_URL } from "../config/Api";
 import { toast } from "react-toastify";
 
 const MyProfile = () => {
-  const { user, updateUserContext } = useAuth();
+  const { user, accessToken, updateUserContext } = useAuth();
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
   const [phone, setPhone] = useState(user?.phone || "");
@@ -14,7 +14,6 @@ const MyProfile = () => {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    console.log("token", localStorage.getItem("token"));
 
     try {
       // 🟢 Update user profile (first name, last name, phone)
@@ -26,7 +25,7 @@ const MyProfile = () => {
           phone,
         },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
 
@@ -42,7 +41,7 @@ const MyProfile = () => {
           { oldPassword, newPassword },
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Authorization: `Bearer ${accessToken}`,
             },
           }
         );
