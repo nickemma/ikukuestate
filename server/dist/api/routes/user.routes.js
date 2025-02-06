@@ -1,0 +1,21 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const user_controller_1 = require("../controllers/user.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const router = express_1.default.Router();
+router.put("/updateuser", auth_middleware_1.protect, user_controller_1.updateUser);
+router.put("/change-password", auth_middleware_1.protect, user_controller_1.changePassword);
+router.post("/register", user_controller_1.register);
+router.post("/login", user_controller_1.login);
+router.post("/refresh-token", user_controller_1.refreshToken);
+router.post("/forgot-password", user_controller_1.forgotPassword);
+router.post("/reset-password/:resetToken", user_controller_1.resetPassword);
+router.get("/verify-email/:token", user_controller_1.verifyEmail);
+router.get("/profile", auth_middleware_1.protect, user_controller_1.getUserProfile);
+router.post("/schedule-tour", user_controller_1.scheduleTour);
+router.post("/logout", user_controller_1.logout);
+exports.default = router;
