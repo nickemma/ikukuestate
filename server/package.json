@@ -1,11 +1,11 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "api/index.ts",
   "scripts": {
-    "start": "ts-node index.ts",
+    "start": "ts-node api/index.ts",
     "build": "tsc",
-    "server": "nodemon index.ts"
+    "server": "nodemon api/index.ts"
   },
   "keywords": [],
   "author": "Techie Emma",
