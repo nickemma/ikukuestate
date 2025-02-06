@@ -11,11 +11,7 @@
       "src": "/(.*)",
       "dest": "/"
     }
-  ],
-  "functions": {
-    "index.ts": {
-      "maxDuration": 5
-    }
-  }
+  ]
 }
+
 
