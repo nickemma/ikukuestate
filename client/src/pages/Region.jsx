@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import axios from "axios";
-import { API_URL } from "../config/Api";
+// import axios from "axios";
+import { api } from "../config/Api";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorMessage from "../components/ErrorMessage";
 import { useEffect, useState } from "react";
@@ -13,7 +13,7 @@ const Region = () => {
   useEffect(() => {
     const fetchRegions = async () => {
       try {
-        const response = await axios.get(`${API_URL}/admin/regions`);
+        const response = await api.get(`/admin/regions`);
         setRegions(response.data.data);
       } catch (err) {
         setError("Failed to load regions", err);
