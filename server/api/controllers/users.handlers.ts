@@ -2,8 +2,7 @@ import { HTTPSTATUS } from "../config/http.config";
 import propertyModel from "../database/models/property.model";
 import User from "../database/models/user.model";
 import { asyncHandler } from "../middleware/asyncHandler";
-import { config } from "../config/app.config";
-import { AuthenticatedRequest } from "types/express";
+import { AuthenticatedRequest } from "api/types/express";
 import { Response } from "express";
 
 /*
