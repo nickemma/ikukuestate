@@ -100,9 +100,6 @@ export const AuthProvider = ({ children }) => {
     Cookies.remove("refreshToken");
     setUser(null);
     setAccessToken(null); // Clear accessToken from state
-
-    // Redirect to home page after logout
-    window.location.href = "/"; // Or use `navigate("/")`
   };
 
   useEffect(() => {
