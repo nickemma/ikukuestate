@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "api/index.ts",
   "scripts": {
-    "start": "ts-node api/index.ts",
-    "build": "tsc",
-    "server": "nodemon api/index.ts"
+    "start": "node dist/api/index.js",
+  "build": "tsc",
+  "server": "nodemon api/index.ts"
   },
   "keywords": [],
   "author": "Techie Emma",

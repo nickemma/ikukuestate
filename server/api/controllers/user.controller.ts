@@ -10,7 +10,7 @@ import { Resend } from "resend";
 import { verifyEmailTemplate, passwordResetTemplate } from "../mailer/template";
 
 import { generateTokens } from "../util/generateTokens";
-import { AuthenticatedRequest } from "types/express";
+import { AuthenticatedRequest } from "api/types/express";
 
 const resend = new Resend(config.RESEND_API_KEY);
 
