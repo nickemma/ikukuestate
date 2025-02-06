@@ -7,15 +7,15 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
 // files import
-import { config } from "./config/app.config";
-import connectDB from "./database/database";
-import { HTTPSTATUS } from "./config/http.config";
-import { asyncHandler } from "./middleware/asyncHandler";
-import authRoutes from "./routes/user.routes";
-import propertyRoutes from "./routes/property.routes";
-import regionRoutes from "./routes/region.routes";
-import FavoriteRoutes from "./routes/user.handlers.routes";
-import { errorHandler } from "./middleware/errorHandler";
+import { config } from "../config/app.config";
+import connectDB from "../database/database";
+import { HTTPSTATUS } from "../config/http.config";
+import { asyncHandler } from "../middleware/asyncHandler";
+import authRoutes from "../routes/user.routes";
+import propertyRoutes from "../routes/property.routes";
+import regionRoutes from "../routes/region.routes";
+import FavoriteRoutes from "../routes/user.handlers.routes";
+import { errorHandler } from "../middleware/errorHandler";
 
 const app = express();
 //============= Middlewares

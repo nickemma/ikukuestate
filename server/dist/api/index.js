@@ -43,15 +43,15 @@ const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 // files import
-const app_config_1 = require("./config/app.config");
-const database_1 = __importDefault(require("./database/database"));
-const http_config_1 = require("./config/http.config");
-const asyncHandler_1 = require("./middleware/asyncHandler");
-const user_routes_1 = __importDefault(require("./routes/user.routes"));
-const property_routes_1 = __importDefault(require("./routes/property.routes"));
-const region_routes_1 = __importDefault(require("./routes/region.routes"));
-const user_handlers_routes_1 = __importDefault(require("./routes/user.handlers.routes"));
-const errorHandler_1 = require("./middleware/errorHandler");
+const app_config_1 = require("../config/app.config");
+const database_1 = __importDefault(require("../database/database"));
+const http_config_1 = require("../config/http.config");
+const asyncHandler_1 = require("../middleware/asyncHandler");
+const user_routes_1 = __importDefault(require("../routes/user.routes"));
+const property_routes_1 = __importDefault(require("../routes/property.routes"));
+const region_routes_1 = __importDefault(require("../routes/region.routes"));
+const user_handlers_routes_1 = __importDefault(require("../routes/user.handlers.routes"));
+const errorHandler_1 = require("../middleware/errorHandler");
 const app = (0, express_1.default)();
 //============= Middlewares
 // Make sure this comes FIRST before any routes

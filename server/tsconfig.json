@@ -8,12 +8,12 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "typeRoots": ["./node_modules/@types", "api/types"],
+    "typeRoots": ["./node_modules/@types", "types"],
     "baseUrl": ".", // Add this to resolve paths
    "paths": {
-  "types/*": ["api/types/*"]
+  "types/*": ["types/*"]
 }
   },
-  "include": ["./**/*.ts", "src", "api/types"],
+  "include": ["./**/*.ts", "src", "types"],
   "exclude": ["node_modules", "dist"]
 }
