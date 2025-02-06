@@ -44,8 +44,6 @@ const AuthModal = ({ onClose }) => {
         // ✅ Store user data using AuthContext
         login(data.user, data.accessToken, data.refreshToken);
         toast.success("Logged in successfully!");
-        console.log("Logged in user:", data.user);
-        console.log("User role:", data.user.role);
         navigate(
           data.user.role === "admin" ? "/admin/dashboard" : "/user/dashboard"
         );

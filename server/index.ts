@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: config.APP_ORIGIN,
+    origin: ["http://localhost:5173", "https://ikukuestate.vercel.app/"],
     credentials: true,
   })
 );

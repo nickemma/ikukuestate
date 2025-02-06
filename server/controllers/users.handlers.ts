@@ -17,9 +17,6 @@ export const addFavorite = asyncHandler(
     const { propertyId } = req.body;
     const userId = req.user?.id;
 
-    console.log(userId, "userId");
-    console.log(propertyId, "propertyId");
-
     const property = await propertyModel.findById(propertyId);
 
     if (!property) {

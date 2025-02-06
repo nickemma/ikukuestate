@@ -103,7 +103,7 @@ export const createProperty = asyncHandler(async (req, res) => {
 
   // Send email to all users about the new property
   const verifiedUsers = await User.find({ isVerified: true });
-  const notificationUrl = `${config.APP_ORIGIN}/properties/${savedProperty._id}`;
+  const notificationUrl = `https://ikukuestate.vercel.app/properties/${savedProperty._id}`;
 
   for (const user of verifiedUsers) {
     await resend.emails.send({

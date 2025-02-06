@@ -62,7 +62,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     role: newUser.role,
   });
 
-  const verificationUrl = `${config.APP_ORIGIN}/verify-email/${verificationToken}`;
+  const verificationUrl = `https://ikukuestate.vercel.app/verify-email/${verificationToken}`;
 
   await resend.emails.send({
     from: "Admin <onboarding@resend.dev>",
@@ -324,7 +324,7 @@ export const forgotPassword = asyncHandler(
     await user.save();
 
     // Send reset email
-    const resetUrl = `${config.APP_ORIGIN}/reset-password?token=${resetToken}`;
+    const resetUrl = `https://ikukuestate.vercel.app/reset-password?token=${resetToken}`;
     const { error } = await resend.emails.send({
       from: "Admin <onboarding@resend.dev>",
       to: [user.email],
@@ -412,7 +412,6 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
  */
 
 export const scheduleTour = asyncHandler(async (req, res) => {
-  console.log(req.body);
   const { firstName, lastName, email, phone, message } = req.body;
 
   // Validate input fields

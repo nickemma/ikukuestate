@@ -85,7 +85,6 @@ UserSchema.pre("save", async function (next) {
     this.set("password", hashedPassword);
     next(); // Call the next() function to continue saving
   } catch (error: any) {
-    console.log(error);
     next(error); // Pass any error to the next middleware
   }
 });
