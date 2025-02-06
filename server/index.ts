@@ -19,14 +19,18 @@ import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 //============= Middlewares
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Make sure this comes FIRST before any routes
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://ikukuestate.vercel.app/"],
+    origin: ["http://localhost:5173", "https://ikukuestate.vercel.app"],
     credentials: true,
   })
 );
+// Handle preflight requests
+app.options("*", cors());
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(cookieParser());
 
