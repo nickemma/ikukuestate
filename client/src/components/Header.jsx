@@ -84,9 +84,9 @@ const Header = () => {
               <Link to="/">
                 <div className="flex items-center justify-center text-white">
                   <img
-                    src="/logo1.jpg"
+                    src="/logo.jpg"
                     alt="The Agency Logo"
-                    className="w-32 h-24 object-cover"
+                    className="w-20 h-16 object-cover"
                     loading="lazy"
                   />
                 </div>

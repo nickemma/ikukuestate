@@ -23,7 +23,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
         {/* Hero Content */}
-        <div className="absolute flex flex-col items-start space-y-2 px-4 md:left-[16rem] md:top-[10rem] top-[5rem] text-white text-2xl md:text-[2.2rem] font-normal">
+        <div className="mt-10 absolute flex flex-col items-start space-y-2 px-4 md:left-[16rem] md:top-[10rem] top-[7rem] text-white text-2xl md:text-[2.2rem] font-normal">
           <h2>
             Your window to the <br />
             <span className="italic">world&apos;s finest</span> real estate
@@ -31,7 +31,7 @@ const Home = () => {
         </div>
 
         {/* Explore Button */}
-        <div className="w-full max-w-[60rem] absolute flex flex-col items-start space-y-2 bottom-16 px-4 md:left-[16rem] text-white">
+        <div className="w-full max-w-[60rem] absolute flex flex-col items-start space-y-2 bottom-20 px-4 md:left-[16rem] text-white">
           {/* Navigation Links */}
           <nav className="flex space-x-4 text-white">
             <a
