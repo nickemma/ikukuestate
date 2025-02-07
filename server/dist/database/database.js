@@ -9,9 +9,10 @@ mongoose_1.default.set("strictQuery", false);
 const connectDB = async () => {
     try {
         await mongoose_1.default.connect(app_config_1.config.MONGO_URI);
+        console.log("🔥 MongoDB Connected Successfully");
     }
     catch (error) {
-        console.log(error);
+        console.error("❌ MongoDB Connection Error:", error);
         process.exit(1);
     }
 };

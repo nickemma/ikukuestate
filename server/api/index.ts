@@ -53,7 +53,12 @@ app.use("/api/v1/admin", regionRoutes);
 app.use(errorHandler);
 
 //============= Server
-app.listen(config.PORT, async () => {
-  await connectDB();
-  console.log(`Server running on port http://localhost:${config.PORT}`);
-});
+connectDB()
+  .then(() => {
+    app.listen(config.PORT, () => {
+      console.log(`Server running on port http://localhost:${config.PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("❌ Failed to connect to MongoDB:", error);
+  });
