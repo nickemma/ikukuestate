@@ -102,6 +102,13 @@ export const createProperty = asyncHandler(async (req, res) => {
     // Clean up temp files
     files.forEach((file) => fs.unlinkSync(file.path));
 
+    let featuresArray = [];
+    try {
+      featuresArray = JSON.parse(features);
+    } catch {
+      featuresArray = features.split(",").map((f: string) => f.trim());
+    }
+
     // Create new property
     const property = new Property({
       name,
@@ -114,7 +121,7 @@ export const createProperty = asyncHandler(async (req, res) => {
       baths: Number(baths),
       sqft: Number(sqft),
       furnished: Boolean(furnished),
-      features: Array.isArray(features) ? features : JSON.parse(features),
+      features: featuresArray,
       region,
       images: imageUrls,
     });

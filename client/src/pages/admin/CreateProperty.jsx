@@ -71,6 +71,11 @@ const CreateProperty = () => {
     e.preventDefault();
     setErrors({});
     setSuccess("");
+    // Convert features to array
+    const featuresArray = formData.features
+      .split(",")
+      .map((feature) => feature.trim());
+
     // Convert furnished to boolean
     const furnishedBoolean = formData.furnished === "Yes"; // "Yes" -> true, "No" -> false
     // Validate form data
@@ -85,6 +90,7 @@ const CreateProperty = () => {
       !formData.baths ||
       !formData.sqft ||
       !formData.region ||
+      !featuresArray.length ||
       formData.furnished === "" ||
       uploadedImages.length === 0
     ) {
@@ -105,7 +111,7 @@ const CreateProperty = () => {
     payload.append("sqft", formData.sqft);
     payload.append("furnished", furnishedBoolean);
     payload.append("region", formData.region);
-    payload.append("features", formData.features);
+    payload.append("features", JSON.stringify(featuresArray)); // Stringify array
     uploadedImages.forEach((file) => payload.append("images", file)); // Append images
 
     try {
@@ -141,7 +147,7 @@ const CreateProperty = () => {
       setImagePreviews([]); // Clear image previews
       setErrors({});
     } catch (error) {
-      console.error("Failed to create property:", error);
+      console.error("Error:", error.response?.data);
       setErrors({ message: "Failed to create property. Please try again." });
     }
   };
