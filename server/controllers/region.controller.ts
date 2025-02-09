@@ -2,8 +2,8 @@ import { asyncHandler } from "../middleware/asyncHandler";
 import { HTTPSTATUS } from "../config/http.config";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-
 import Region from "../database/models/region.model";
+
 /*
  * @route   POST api/admin/regions
  * @desc    Create a new region
@@ -60,45 +60,6 @@ export const createRegion = asyncHandler(async (req, res) => {
   }
 });
 
-// export const createRegion = asyncHandler(async (req, res) => {
-//   const { city } = req.body;
-
-//   if (!city) {
-//     return res
-//       .status(HTTPSTATUS.BAD_REQUEST)
-//       .json({ message: "All fields are required" });
-//   }
-
-//   if (!req.file) {
-//     // Change to check req.file
-//     return res
-//       .status(HTTPSTATUS.BAD_REQUEST)
-//       .json({ message: "At least one image is required" });
-//   }
-
-//   // Upload image to Cloudinary
-//   const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
-//     folder: "ikukuestate",
-//     transformation: [
-//       { quality: "auto", fetch_format: "auto" },
-//       { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
-//     ],
-//   });
-
-//   // Create a new region
-//   const region = new Region({
-//     city,
-//     image: uploadedImage.secure_url,
-//   });
-
-//   await region.save();
-
-//   res.status(HTTPSTATUS.CREATED).json({
-//     message: "Region created successfully",
-//     data: region,
-//   });
-// });
-
 /*
  * @route   GET api/admin/regions
  * @desc    Get all regions
@@ -144,7 +105,6 @@ export const getRegionById = asyncHandler(async (req, res) => {
 export const updateRegion = asyncHandler(async (req, res) => {
   const { city } = req.body;
 
-  // Check if the city field is provided
   if (!city) {
     return res
       .status(HTTPSTATUS.BAD_REQUEST)
@@ -152,44 +112,64 @@ export const updateRegion = asyncHandler(async (req, res) => {
   }
 
   const region = await Region.findById(req.params.id);
-
   if (!region) {
     return res
       .status(HTTPSTATUS.NOT_FOUND)
       .json({ message: "Region not found" });
   }
 
-  // Update the city
-  region.city = city;
+  let newImageUrl = region.image;
 
-  // Check if a new image is provided
-  if (req.file) {
-    // Upload the new image to Cloudinary
-    const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
-      folder: "ikukuestate",
-      transformation: [
-        { quality: "auto", fetch_format: "auto" },
-        { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
-      ],
-    });
+  try {
+    if (req.file) {
+      // Delete old image from Cloudinary
+      if (region.image) {
+        const publicId = region.image.split("/").pop()?.split(".")[0];
+        if (publicId) {
+          await cloudinary.uploader.destroy(`ikukuestate/${publicId}`);
+        }
+      }
 
-    // Delete the old image from Cloudinary (if it exists)
-    if (region.image) {
-      await cloudinary.uploader.destroy(region.image); // Delete the old image
+      // Upload new image
+      const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
+        folder: "ikukuestate",
+        transformation: [
+          { quality: "auto", fetch_format: "auto" },
+          { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
+        ],
+      });
+
+      newImageUrl = uploadedImage.secure_url;
+
+      // Clean up temp file
+      fs.unlinkSync(req.file.path);
     }
 
-    // Update the region's image URL
-    region.image = uploadedImage.secure_url;
+    // Update region
+    const updatedRegion = await Region.findByIdAndUpdate(
+      req.params.id,
+      { city, image: newImageUrl },
+      { new: true, runValidators: true }
+    );
+
+    res.status(HTTPSTATUS.OK).json({
+      message: "Region updated successfully",
+      data: updatedRegion,
+    });
+  } catch (error) {
+    // Clean up file if upload failed
+    if (req.file?.path) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    console.error("Error updating region:", error);
+    res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Error updating region",
+      error: process.env.NODE_ENV === "development" ? error : undefined,
+    });
   }
-
-  // Save the updated region
-  await region.save();
-
-  res.status(HTTPSTATUS.OK).json({
-    message: "Region updated successfully",
-    data: region,
-  });
 });
+
 /*
  * @route   DELETE api/admin/regions/:id
  * @desc    Delete a region

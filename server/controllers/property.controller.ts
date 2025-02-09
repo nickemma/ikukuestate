@@ -1,3 +1,4 @@
+import fs from "fs";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { HTTPSTATUS } from "../config/http.config";
 import { v2 as cloudinary } from "cloudinary";
@@ -10,6 +11,7 @@ import Region from "../database/models/region.model";
 import mongoose from "mongoose";
 
 const resend = new Resend(config.RESEND_API_KEY);
+
 /*
  * @route   POST api/admin/properties
  * @desc    Create a new property
@@ -32,93 +34,132 @@ export const createProperty = asyncHandler(async (req, res) => {
     features,
   } = req.body;
 
-  // Check if all required fields are provided
-  if (
-    !name ||
-    !description ||
-    !location ||
-    !propertyType ||
-    !price ||
-    !propertyDetails ||
-    !beds ||
-    !baths ||
-    !sqft ||
-    !features ||
-    !region ||
-    furnished === undefined
-  ) {
-    return res
-      .status(HTTPSTATUS.BAD_REQUEST)
-      .json({ message: "All fields are required" });
-  }
+  try {
+    // Validation
+    if (
+      !name ||
+      !description ||
+      !location ||
+      !propertyType ||
+      !price ||
+      !propertyDetails ||
+      !beds ||
+      !baths ||
+      !sqft ||
+      !region ||
+      furnished === undefined ||
+      !features
+    ) {
+      // Clean up any uploaded files
+      if (req.files) {
+        (req.files as Express.Multer.File[]).forEach((file) => {
+          fs.unlinkSync(file.path);
+        });
+      }
+      return res
+        .status(HTTPSTATUS.BAD_REQUEST)
+        .json({ message: "All fields are required" });
+    }
 
-  // Validate region existence
-  const existingRegion = await Region.findById(region);
-  if (!existingRegion) {
-    return res
-      .status(HTTPSTATUS.BAD_REQUEST)
-      .json({ message: "Invalid region" });
-  }
+    // Validate region existence
+    const existingRegion = await Region.findById(region);
+    if (!existingRegion) {
+      // Clean up files if region is invalid
+      if (req.files) {
+        (req.files as Express.Multer.File[]).forEach((file) => {
+          fs.unlinkSync(file.path);
+        });
+      }
+      return res
+        .status(HTTPSTATUS.BAD_REQUEST)
+        .json({ message: "Invalid region" });
+    }
 
-  if (!req.files || !req.files.length) {
-    return res
-      .status(HTTPSTATUS.BAD_REQUEST)
-      .json({ message: "At least one image is required" });
-  }
-  const files = req.files as Express.Multer.File[];
+    // Handle file uploads
+    if (!req.files?.length) {
+      return res
+        .status(HTTPSTATUS.BAD_REQUEST)
+        .json({ message: "At least one image is required" });
+    }
 
-  // Upload images to Cloudinary
-  const uploadPromises = files.map((file) =>
-    cloudinary.uploader.upload(file.path, {
-      folder: "ikukuestate",
-      transformation: [
-        { quality: "auto", fetch_format: "auto" },
-        { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
-      ],
-    })
-  );
+    const files = req.files as Express.Multer.File[];
 
-  const uploadedImages = await Promise.all(uploadPromises);
+    // Upload images to Cloudinary
+    const uploadPromises = files.map((file) =>
+      cloudinary.uploader.upload(file.path, {
+        folder: "ikukuestate",
+        transformation: [
+          { quality: "auto", fetch_format: "auto" },
+          { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
+        ],
+      })
+    );
 
-  const imageUrls = uploadedImages.map((result) => result.secure_url);
+    const uploadedImages = await Promise.all(uploadPromises);
 
-  // Create new property
-  const property = new Property({
-    name,
-    description,
-    location,
-    propertyType,
-    price,
-    propertyDetails,
-    beds,
-    baths,
-    sqft,
-    furnished,
-    features,
-    region,
-    images: imageUrls,
-  });
+    const imageUrls = uploadedImages.map((img) => img.secure_url);
 
-  const savedProperty = await property.save();
+    // Clean up temp files
+    files.forEach((file) => fs.unlinkSync(file.path));
 
-  // Send email to all users about the new property
-  const verifiedUsers = await User.find({ isVerified: true });
-  const notificationUrl = `https://ikukuestate.vercel.app/properties/${savedProperty._id}`;
+    // Create new property
+    const property = new Property({
+      name,
+      description,
+      location,
+      propertyType,
+      price: Number(price),
+      propertyDetails,
+      beds: Number(beds),
+      baths: Number(baths),
+      sqft: Number(sqft),
+      furnished: Boolean(furnished),
+      features: Array.isArray(features) ? features : JSON.parse(features),
+      region,
+      images: imageUrls,
+    });
 
-  for (const user of verifiedUsers) {
-    await resend.emails.send({
-      from: "Admin <onboarding@resend.dev>",
-      to: [user.email],
-      subject: "New Property Listing Available",
-      html: newListingTemplate(notificationUrl, JSON.stringify(savedProperty))
-        .html,
+    const savedProperty = await property.save();
+
+    // Send email to all users about the new property
+    const verifiedUsers = await User.find({ isVerified: true }).select("email");
+    const notificationUrl = `https://ikukuestate.vercel.app/properties/${savedProperty._id}`;
+
+    // Use Promise.all for parallel execution
+    await Promise.all(
+      verifiedUsers.map(async (user) => {
+        await resend.emails.send({
+          from: "Admin <onboarding@resend.dev>",
+          to: user.email,
+          subject: "New Property Listing Available",
+          html: newListingTemplate(
+            notificationUrl,
+            JSON.stringify(savedProperty)
+          ).html,
+        });
+      })
+    );
+
+    res.status(HTTPSTATUS.CREATED).json({
+      message: "Property created successfully",
+      property: savedProperty,
+    });
+  } catch (error) {
+    // Clean up any remaining files
+    if (req.files) {
+      (req.files as Express.Multer.File[]).forEach((file) => {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      });
+    }
+
+    console.error("Error creating property:", error);
+    res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Error creating property",
+      error: process.env.NODE_ENV === "development" ? error : undefined,
     });
   }
-
-  res.status(HTTPSTATUS.CREATED).json({
-    message: "Property created successfully",
-    property: savedProperty,
-  });
 });
 
 /*
@@ -144,82 +185,138 @@ export const updateProperty = asyncHandler(async (req, res) => {
     features,
   } = req.body;
 
-  // Check if the property exists
-  const property = await Property.findById(id).populate("region");
-  if (!property) {
-    return res
-      .status(HTTPSTATUS.NOT_FOUND)
-      .json({ message: "Property not found" });
-  }
-
-  // Check if all required fields are provided (except images)
-  if (
-    !name ||
-    !description ||
-    !location ||
-    !propertyType ||
-    !price ||
-    !propertyDetails ||
-    !beds ||
-    !baths ||
-    !sqft ||
-    !features ||
-    !region ||
-    furnished === undefined
-  ) {
-    return res
-      .status(HTTPSTATUS.BAD_REQUEST)
-      .json({ message: "All fields are required" });
-  }
-
-  // Upload new images if provided
-  let imageUrls = [...property.images]; // Keep existing images by default
-
-  if (req.files && req.files.length) {
-    const files = req.files as Express.Multer.File[];
-
-    try {
-      // Upload images to Cloudinary
-      const uploadPromises = files.map((file) =>
-        cloudinary.uploader.upload(file.path, {
-          folder: "ikukuestate",
-          transformation: [
-            { quality: "auto", fetch_format: "auto" },
-            { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
-          ],
-        })
-      );
-
-      const uploadedImages = await Promise.all(uploadPromises);
-      const newImageUrls = uploadedImages.map((result) => result.secure_url);
-      imageUrls = [...imageUrls, ...newImageUrls]; // Merge new images with existing ones
-    } catch (error: any) {
+  try {
+    // Validate required fields
+    if (
+      !name ||
+      !description ||
+      !location ||
+      !propertyType ||
+      !price ||
+      !propertyDetails ||
+      !beds ||
+      !baths ||
+      !sqft ||
+      !region ||
+      furnished === undefined ||
+      !features
+    ) {
+      // Clean up uploaded files if validation fails
+      if (req.files) {
+        (req.files as Express.Multer.File[]).forEach((file) => {
+          fs.unlinkSync(file.path);
+        });
+      }
       return res
         .status(HTTPSTATUS.BAD_REQUEST)
-        .json({ message: "Image upload failed", error: error.message });
+        .json({ message: "All fields are required" });
     }
+
+    // Check property existence
+    const property = await Property.findById(id);
+    if (!property) {
+      // Clean up files if property not found
+      if (req.files) {
+        (req.files as Express.Multer.File[]).forEach((file) => {
+          fs.unlinkSync(file.path);
+        });
+      }
+      return res
+        .status(HTTPSTATUS.NOT_FOUND)
+        .json({ message: "Property not found" });
+    }
+
+    // Validate region exists
+    const existingRegion = await Region.findById(region);
+    if (!existingRegion) {
+      if (req.files) {
+        (req.files as Express.Multer.File[]).forEach((file) => {
+          fs.unlinkSync(file.path);
+        });
+      }
+      return res
+        .status(HTTPSTATUS.BAD_REQUEST)
+        .json({ message: "Invalid region" });
+    }
+
+    let newImageUrls = [...property.images];
+    const files = req.files as Express.Multer.File[];
+
+    // Handle image uploads
+    if (files?.length) {
+      try {
+        // Upload new images
+        const uploadPromises = files.map((file) =>
+          cloudinary.uploader.upload(file.path, {
+            folder: "ikukuestate",
+            transformation: [
+              { quality: "auto", fetch_format: "auto" },
+              { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
+            ],
+          })
+        );
+
+        const uploadedImages = await Promise.all(uploadPromises);
+        newImageUrls = [
+          ...property.images,
+          ...uploadedImages.map((img) => img.secure_url),
+        ];
+
+        // Cleanup temp files after successful upload
+        files.forEach((file) => fs.unlinkSync(file.path));
+      } catch (error) {
+        // Cleanup files on upload failure
+        files.forEach((file) => fs.unlinkSync(file.path));
+        console.error("Image upload error:", error);
+        return res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+          message: "Image upload failed",
+          error: process.env.NODE_ENV === "development" ? error : undefined,
+        });
+      }
+    }
+
+    // Update property data
+    const updatedData = {
+      name,
+      description,
+      location,
+      propertyType,
+      price: Number(price),
+      propertyDetails,
+      beds: Number(beds),
+      baths: Number(baths),
+      sqft: Number(sqft),
+      furnished: Boolean(furnished),
+      features: Array.isArray(features) ? features : JSON.parse(features),
+      region,
+      images: newImageUrls,
+    };
+
+    const updatedProperty = await Property.findByIdAndUpdate(id, updatedData, {
+      new: true,
+      runValidators: true,
+    }).populate("region");
+
+    res.status(HTTPSTATUS.OK).json({
+      message: "Property updated successfully",
+      property: updatedProperty,
+    });
+  } catch (error) {
+    // Cleanup any remaining files
+    if (req.files) {
+      (req.files as Express.Multer.File[]).forEach((file) => {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      });
+    }
+
+    console.error("Update property error:", error);
+    res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Error updating property",
+      error: process.env.NODE_ENV === "development" ? error : undefined,
+    });
   }
-
-  // Update property details
-  property.name = name;
-  property.description = description;
-  property.location = location;
-  property.propertyType = propertyType;
-  property.price = price;
-  property.propertyDetails = propertyDetails;
-  property.beds = beds;
-  property.baths = baths;
-  property.sqft = sqft;
-  property.features = features;
-  property.furnished = furnished;
-  property.images = imageUrls; // Update images
-
-  const updatedProperty = await property.save();
-
-  res.status(HTTPSTATUS.OK).json({
-    message: "Property updated successfully",
-    property: updatedProperty,
-  });
 });
 
 /*
