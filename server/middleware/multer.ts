@@ -1,9 +1,16 @@
+import { Request } from "express";
 import cloudinary from "cloudinary";
 import { config } from "../config/app.config";
 import multer from "multer";
-import path from "path";
+import fs from "fs";
 
-// Configure Cloudinary
+// Create temporary directory if it doesn't exist
+const tmpDir = "/tmp/uploads";
+if (!fs.existsSync(tmpDir)) {
+  fs.mkdirSync(tmpDir, { recursive: true });
+}
+
+// Configure multer to use /tmp directory for serverless environment
 cloudinary.v2.config({
   cloud_name: config.CLOUDINARY_CLOUD_NAME,
   api_key: config.CLOUDINARY_API_KEY,
@@ -12,8 +19,8 @@ cloudinary.v2.config({
 
 // Define storage for multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "uploads"));
+  destination: (req: Request, file, cb) => {
+    cb(null, tmpDir); // Use Vercel's writable /tmp directory
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`); // Create a unique filename

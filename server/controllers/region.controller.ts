@@ -1,51 +1,103 @@
 import { asyncHandler } from "../middleware/asyncHandler";
 import { HTTPSTATUS } from "../config/http.config";
 import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+
 import Region from "../database/models/region.model";
 /*
  * @route   POST api/admin/regions
  * @desc    Create a new region
  * @access  Private
  */
-
 export const createRegion = asyncHandler(async (req, res) => {
   const { city } = req.body;
 
-  if (!city) {
-    return res
-      .status(HTTPSTATUS.BAD_REQUEST)
-      .json({ message: "All fields are required" });
+  if (!city || !req.file) {
+    // Clean up uploaded file if it exists
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
+    return res.status(HTTPSTATUS.BAD_REQUEST).json({
+      message: "All fields are required including an image file",
+    });
   }
 
-  if (!req.file) {
-    // Change to check req.file
-    return res
-      .status(HTTPSTATUS.BAD_REQUEST)
-      .json({ message: "At least one image is required" });
+  try {
+    // Upload image to Cloudinary
+    const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
+      folder: "ikukuestate",
+      transformation: [
+        { quality: "auto", fetch_format: "auto" },
+        { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
+      ],
+    });
+
+    // Create and save region
+    const region = new Region({
+      city,
+      image: uploadedImage.secure_url,
+    });
+
+    await region.save();
+
+    // Clean up temporary file
+    fs.unlinkSync(req.file.path);
+
+    res.status(HTTPSTATUS.CREATED).json({
+      message: "Region created successfully",
+      data: region,
+    });
+  } catch (error) {
+    // Clean up file if upload failed
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
+    console.error("Error creating region:", error);
+    res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Error creating region",
+      error: process.env.NODE_ENV === "development" ? error : undefined,
+    });
   }
-
-  // Upload image to Cloudinary
-  const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
-    folder: "ikukuestate",
-    transformation: [
-      { quality: "auto", fetch_format: "auto" },
-      { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
-    ],
-  });
-
-  // Create a new region
-  const region = new Region({
-    city,
-    image: uploadedImage.secure_url,
-  });
-
-  await region.save();
-
-  res.status(HTTPSTATUS.CREATED).json({
-    message: "Region created successfully",
-    data: region,
-  });
 });
+
+// export const createRegion = asyncHandler(async (req, res) => {
+//   const { city } = req.body;
+
+//   if (!city) {
+//     return res
+//       .status(HTTPSTATUS.BAD_REQUEST)
+//       .json({ message: "All fields are required" });
+//   }
+
+//   if (!req.file) {
+//     // Change to check req.file
+//     return res
+//       .status(HTTPSTATUS.BAD_REQUEST)
+//       .json({ message: "At least one image is required" });
+//   }
+
+//   // Upload image to Cloudinary
+//   const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
+//     folder: "ikukuestate",
+//     transformation: [
+//       { quality: "auto", fetch_format: "auto" },
+//       { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
+//     ],
+//   });
+
+//   // Create a new region
+//   const region = new Region({
+//     city,
+//     image: uploadedImage.secure_url,
+//   });
+
+//   await region.save();
+
+//   res.status(HTTPSTATUS.CREATED).json({
+//     message: "Region created successfully",
+//     data: region,
+//   });
+// });
 
 /*
  * @route   GET api/admin/regions
