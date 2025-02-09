@@ -14,6 +14,6 @@
   "types/*": ["types/*"]
 }
   },
-  "include": ["./**/*.ts", "src", "types"],
+  "include": ["./**/*.ts","api/**/*", "routes/**/*", "config/**/*", "database/**/*", "types/**/*"],
   "exclude": ["node_modules", "dist"]
 }

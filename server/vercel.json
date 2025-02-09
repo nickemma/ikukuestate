@@ -4,7 +4,7 @@
     "api/index.ts": {
       "memory": 1024,
       "maxDuration": 60,
-      "runtime": "vercel-node@4.9.2" 
+      "runtime": "nodejs@20.x"
     }
   },
   "routes": [

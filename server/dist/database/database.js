@@ -9,7 +9,7 @@ mongoose_1.default.set("strictQuery", false);
 const connectDB = async () => {
     try {
         await mongoose_1.default.connect(app_config_1.config.MONGO_URI);
-        console.log("🔥 MongoDB Connected Successfully");
+        console.log(`🔥 MongoDB Connected Successfully: http://localhost:${app_config_1.config.PORT}`);
     }
     catch (error) {
         console.error("❌ MongoDB Connection Error:", error);

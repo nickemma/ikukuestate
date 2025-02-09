@@ -42,8 +42,6 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
-// files import
-const app_config_1 = require("../config/app.config");
 const database_1 = __importDefault(require("../database/database"));
 const http_config_1 = require("../config/http.config");
 const asyncHandler_1 = require("../middleware/asyncHandler");
@@ -77,13 +75,7 @@ app.use("/api/v1", user_handlers_routes_1.default);
 app.use("/api/v1/admin", property_routes_1.default);
 app.use("/api/v1/admin", region_routes_1.default);
 app.use(errorHandler_1.errorHandler);
-//============= Server
-(0, database_1.default)()
-    .then(() => {
-    app.listen(app_config_1.config.PORT, () => {
-        console.log(`Server running on port http://localhost:${app_config_1.config.PORT}`);
-    });
-})
-    .catch((error) => {
-    console.error("❌ Failed to connect to MongoDB:", error);
-});
+// Connect to DB and start server (Vercel will handle this)
+(0, database_1.default)().catch(console.error);
+// Export for Vercel serverless
+exports.default = app;
