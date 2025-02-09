@@ -52,16 +52,8 @@ app.use("/api/v1/admin", regionRoutes);
 
 app.use(errorHandler);
 
-//============= Server
-// connectDB()
-//   .then(() => {
-//     app.listen(config.PORT, () => {
-//       console.log(`Server running on port http://localhost:${config.PORT}`);
-//     });
-//   })
-//   .catch((error) => {
-//     console.error("❌ Failed to connect to MongoDB:", error);
-//   });
-
 // Connect to DB and start server (Vercel will handle this)
 connectDB().catch(console.error);
+
+// Export for Vercel serverless
+export default app;
