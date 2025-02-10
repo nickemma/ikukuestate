@@ -53,7 +53,19 @@ app.use("/api/v1/admin", regionRoutes);
 app.use(errorHandler);
 
 // Connect to DB and start server (Vercel will handle this)
-connectDB().catch(console.error);
+// connectDB().catch(console.error);
+const startServer = async () => {
+  try {
+    await connectDB();
+    app.listen(config.PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${config.PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
 
+startServer();
 // Export for Vercel serverless
 export default app;

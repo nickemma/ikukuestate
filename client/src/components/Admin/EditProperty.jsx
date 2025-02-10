@@ -368,6 +368,11 @@ const EditProperty = () => {
           >
             Region
           </label>
+          <p className="m-2">
+            Previous Region:{" "}
+            <span className="font-bold">{formData?.region?.city || " "}</span>{" "}
+            please reselect region or change it
+          </p>
           <select
             id="region"
             name="region"

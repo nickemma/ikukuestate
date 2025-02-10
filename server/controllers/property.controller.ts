@@ -102,13 +102,6 @@ export const createProperty = asyncHandler(async (req, res) => {
     // Clean up temp files
     files.forEach((file) => fs.unlinkSync(file.path));
 
-    let featuresArray = [];
-    try {
-      featuresArray = JSON.parse(features);
-    } catch {
-      featuresArray = features.split(",").map((f: string) => f.trim());
-    }
-
     // Create new property
     const property = new Property({
       name,
@@ -121,7 +114,7 @@ export const createProperty = asyncHandler(async (req, res) => {
       baths: Number(baths),
       sqft: Number(sqft),
       furnished: Boolean(furnished),
-      features: featuresArray,
+      features,
       region,
       images: imageUrls,
     });
@@ -233,8 +226,11 @@ export const updateProperty = asyncHandler(async (req, res) => {
         .json({ message: "Property not found" });
     }
 
+    // Use existing region if not provided in update
+    const regionId = req.body.region || property.region;
+
     // Validate region exists
-    const existingRegion = await Region.findById(region);
+    const existingRegion = await Region.findById(regionId);
     if (!existingRegion) {
       if (req.files) {
         (req.files as Express.Multer.File[]).forEach((file) => {
@@ -243,7 +239,7 @@ export const updateProperty = asyncHandler(async (req, res) => {
       }
       return res
         .status(HTTPSTATUS.BAD_REQUEST)
-        .json({ message: "Invalid region" });
+        .json({ message: "Invalid region ID" });
     }
 
     let newImageUrls = [...property.images];
@@ -294,7 +290,7 @@ export const updateProperty = asyncHandler(async (req, res) => {
       baths: Number(baths),
       sqft: Number(sqft),
       furnished: Boolean(furnished),
-      features: Array.isArray(features) ? features : JSON.parse(features),
+      features,
       region,
       images: newImageUrls,
     };
