@@ -53,13 +53,13 @@ const Properties = () => {
   if (error) return <ErrorMessage message={error} />;
 
   return (
-    <div className="p-4 sm:p-6 sm:ml-16 ">
+    <div className="sm:p-6 sm:ml-16 ">
       <h1 className="text-2xl font-bold mb-4">Properties</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {properties.map((property) => (
           <div
             key={property._id}
-            className="bg-white rounded-lg shadow-md overflow-hidden"
+            className="bg-white rounded-lg shadow-md overflow-hidden mb-8"
           >
             <div className="relative h-48">
               <img

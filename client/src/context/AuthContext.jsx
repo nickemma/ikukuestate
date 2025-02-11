@@ -89,19 +89,6 @@ export const AuthProvider = ({ children }) => {
     }));
   };
 
-  // ✅ Logout function: Clear user state & remove token cookie
-  const logout = () => {
-    // Clear the user data from localStorage
-    localStorage.removeItem("user");
-    // Clear the access token from localStorage
-    localStorage.removeItem("accessToken");
-    // Clear the access token and refresh token from cookies
-    Cookies.remove("accessToken");
-    Cookies.remove("refreshToken");
-    setUser(null);
-    setAccessToken(null); // Clear accessToken from state
-  };
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -134,6 +121,32 @@ export const AuthProvider = ({ children }) => {
 
     fetchUser();
   }, []);
+
+  // ✅ Logout function: Clear user state & remove token cookie
+  const logout = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/auth/logout`,
+        {},
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    } catch (err) {
+      console.error("Failed to log out", err);
+    } finally {
+      // Clear local storage and state
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      Cookies.remove("accessToken", { path: "/" });
+      Cookies.remove("refreshToken", { path: "/" });
+      setUser(null);
+      setAccessToken(null);
+    }
+  };
 
   return (
     <AuthContext.Provider

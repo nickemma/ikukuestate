@@ -54,33 +54,47 @@ const SimilarListing = ({ similarProperties }) => {
                   <p className="text-sm text-gray-500 mt-1">
                     {listing?.location}
                   </p>
-                  <div className="flex justify-between items-center">
-                    <div className="flex flex-row space-x-4 py-2">
-                      <span className="flex items-center">
-                        <b className="text-lg">{listing?.beds}</b>
-                        <span className="ml-1">
-                          {listing?.beds > 1 ? "Beds" : "Bed"}
-                        </span>
-                      </span>
 
-                      <span className="flex items-center">
-                        <b className="text-lg">{listing?.baths}</b>
-                        <span className="ml-1">
-                          {listing?.baths > 1 ? "Baths" : "Bath"}
+                  {/* Conditional Rendering Based on Property Type */}
+                  {listing.propertyType === "House" ? (
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-row space-x-4 py-2">
+                        <span className="flex items-center">
+                          <b className="text-lg">{listing?.beds}</b>
+                          <span className="ml-1">
+                            {listing?.beds > 1 ? "Beds" : "Bed"}
+                          </span>
                         </span>
-                      </span>
 
+                        <span className="flex items-center">
+                          <b className="text-lg">{listing?.baths}</b>
+                          <span className="ml-1">
+                            {listing?.baths > 1 ? "Baths" : "Bath"}
+                          </span>
+                        </span>
+
+                        <span className="flex items-center">
+                          <b className="text-lg">
+                            {listing?.sqft.toLocaleString()}
+                          </b>
+                          <span className="ml-1">SQFT</span>
+                        </span>
+                      </div>
+                    </div>
+                  ) : listing.propertyType === "Land" ? (
+                    <div className="flex justify-between items-center">
                       <span className="flex items-center">
                         <b className="text-lg">
                           {listing?.sqft.toLocaleString()}
                         </b>
                         <span className="ml-1">SQFT</span>
                       </span>
+                      <p>
+                        <b>{listing?.propertyType}</b>
+                      </p>
                     </div>
-                    <p>
-                      <b>{listing?.propertyType}</b>
-                    </p>
-                  </div>
+                  ) : null}
+
                   <div className="mt-4">
                     <div className="flex justify-center items-center w-10 h-10 bg-gray-200 border border-gray-300 rounded-md p-1">
                       <FaHeart
@@ -113,9 +127,10 @@ SimilarListing.propTypes = {
       name: PropTypes.string.isRequired,
       price: PropTypes.number.isRequired,
       location: PropTypes.string.isRequired,
-      beds: PropTypes.number.isRequired,
-      baths: PropTypes.number.isRequired,
+      beds: PropTypes.number,
+      baths: PropTypes.number,
       sqft: PropTypes.number.isRequired,
+      propertyType: PropTypes.string.isRequired,
     })
   ).isRequired,
 };

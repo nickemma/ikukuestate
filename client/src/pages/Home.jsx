@@ -2,6 +2,7 @@ import { FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import DiscoverRegion from "../components/DiscoverRegion";
 import DiscoverListing from "../components/DiscoverListing";
+import DiscoverListingLand from "../components/DiscoverListingLand";
 
 const Home = () => {
   return (
@@ -78,8 +79,11 @@ const Home = () => {
       {/* Discover Region Section */}
       <DiscoverRegion />
 
-      {/* Featured Listings Section */}
+      {/* Featured Listings House */}
       <DiscoverListing />
+
+      {/* Featured Listings Land */}
+      <DiscoverListingLand />
     </>
   );
 };

@@ -157,11 +157,6 @@ export const updateRegion = asyncHandler(async (req, res) => {
       data: updatedRegion,
     });
   } catch (error) {
-    // Clean up file if upload failed
-    if (req.file?.path) {
-      fs.unlinkSync(req.file.path);
-    }
-
     console.error("Error updating region:", error);
     res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
       message: "Error updating region",

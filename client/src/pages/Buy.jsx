@@ -8,6 +8,7 @@ import ErrorMessage from "../components/ErrorMessage";
 
 const Buy = () => {
   const [properties, setProperties] = useState([]);
+  const [regions, setRegions] = useState([]); // Add regions state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
@@ -21,19 +22,30 @@ const Buy = () => {
   });
 
   useEffect(() => {
-    const fetchProperties = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(`${API_URL}/admin/properties`);
-        setProperties(response.data);
+        const [propertiesRes, regionsRes] = await Promise.all([
+          axios.get(`${API_URL}/admin/properties`),
+          axios.get(`${API_URL}/admin/regions`), // Fetch regions
+        ]);
+
+        setProperties(propertiesRes.data);
+        setRegions(regionsRes.data.data);
       } catch (err) {
-        setError("Failed to load regions", err);
+        setError("Failed to load data", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProperties();
+    fetchData();
   }, []);
+
+  // Create region ID to city map
+  const regionMap = regions.reduce((acc, region) => {
+    acc[region._id] = region.city;
+    return acc;
+  }, {});
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -52,28 +64,33 @@ const Buy = () => {
     }
   };
 
-  // Get unique cities and property types
+  // Get unique cities from regions
   const uniqueCities = Array.from(
-    new Set(properties?.map((listing) => listing?.region?.city))
-  );
+    new Set(regions.map((region) => region.city))
+  ).filter(Boolean);
 
   const uniquePropertyTypes = Array.from(
     new Set(properties.map((listing) => listing.propertyType))
   );
 
   // Filtered listings
-  const filteredListings = properties?.filter((listing) => {
+  const filteredListings = properties.filter((listing) => {
+    const listingCity = regionMap[listing.region] || "";
+    const isHouse = listing.propertyType === "House";
+
     return (
       (filters.propertyType.length === 0 ||
         filters.propertyType.includes(listing.propertyType)) &&
-      (filters.city === "" || listing?.region?.city === filters.city) &&
+      (filters.city === "" || listingCity === filters.city) &&
       (filters.minPrice === "" || listing.price >= Number(filters.minPrice)) &&
       (filters.maxPrice === "" || listing.price <= Number(filters.maxPrice)) &&
       (filters.furnished === "" ||
-        listing.furnished.toString() === filters.furnished) &&
+        (isHouse && listing.furnished === (filters.furnished === "true"))) &&
       (filters.beds === "" ||
+        !isHouse ||
         listing.beds >= (filters.beds === "5" ? 5 : Number(filters.beds))) &&
       (filters.baths === "" ||
+        !isHouse ||
         listing.baths >= (filters.baths === "5" ? 5 : Number(filters.baths)))
     );
   });
@@ -146,7 +163,7 @@ const Buy = () => {
             onChange={handleFilterChange}
             className="border rounded p-2"
           >
-            <option value="">Furnished</option>
+            <option value="">Any Furnishing</option>
             <option value="true">Furnished</option>
             <option value="false">Unfurnished</option>
           </select>
@@ -176,36 +193,28 @@ const Buy = () => {
 
       {/* Listings */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {paginatedListings.map((listing) => (
-          <Link key={listing._id} to={`/properties/${listing._id}`}>
-            <div
-              key={listing._id}
-              className="border rounded-lg shadow-md overflow-hidden"
-            >
-              <img
-                src={listing.images[0]}
-                alt={listing.name}
-                className="h-48 w-full object-cover"
-              />
-              <div className="p-4">
-                <h3 className="text-xl font-semibold">{listing.name}</h3>
-                <p className="text-gray-600">{listing.location}</p>
-                <p className="text-gray-800 font-bold mt-2">
-                  ₦{listing?.price?.toLocaleString()}
-                </p>
-                <p className="text-sm text-gray-500">{listing.features}</p>
-                <div className="mt-4">
-                  <span className="bg-gray-200 rounded px-2 py-1 text-sm mr-2">
-                    {listing.beds} Beds
-                  </span>
-                  <span className="bg-gray-200 rounded px-2 py-1 text-sm">
-                    {listing.baths} Baths
-                  </span>
+        {paginatedListings.map((listing) => {
+          const city = regionMap[listing.region] || "Unknown City";
+
+          return (
+            <Link key={listing._id} to={`/properties/${listing._id}`}>
+              <div className="border rounded-lg shadow-md overflow-hidden">
+                <img
+                  src={listing.images[0]}
+                  alt={listing.name}
+                  className="h-48 w-full object-cover"
+                />
+                <div className="p-4">
+                  <h3 className="text-xl font-semibold">{listing.name}</h3>
+                  <p className="text-gray-600">{city}</p> {/* Show city name */}
+                  <p className="text-gray-800 font-bold mt-2">
+                    ₦{listing?.price?.toLocaleString()}
+                  </p>
                 </div>
               </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
 
       {/* Pagination */}

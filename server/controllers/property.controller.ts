@@ -6,9 +6,11 @@ import { Resend } from "resend";
 import { newListingTemplate } from "../mailer/template";
 import { config } from "../config/app.config";
 import User from "../database/models/user.model";
-import Property from "../database/models/property.model";
+import BaseProperty from "../database/models/property.model";
 import Region from "../database/models/region.model";
 import mongoose from "mongoose";
+import { House } from "../database/models/house.model";
+import { Land } from "../database/models/land.model";
 
 const resend = new Resend(config.RESEND_API_KEY);
 
@@ -19,57 +21,48 @@ const resend = new Resend(config.RESEND_API_KEY);
  */
 
 export const createProperty = asyncHandler(async (req, res) => {
-  const {
-    name,
-    description,
-    location,
-    propertyType,
-    price,
-    propertyDetails,
-    beds,
-    baths,
-    sqft,
-    region,
-    furnished,
-    features,
-  } = req.body;
+  const { propertyType, ...rest } = req.body;
 
   try {
-    // Validation
-    if (
-      !name ||
-      !description ||
-      !location ||
-      !propertyType ||
-      !price ||
-      !propertyDetails ||
-      !beds ||
-      !baths ||
-      !sqft ||
-      !region ||
-      furnished === undefined ||
-      !features
-    ) {
-      // Clean up any uploaded files
-      if (req.files) {
-        (req.files as Express.Multer.File[]).forEach((file) => {
-          fs.unlinkSync(file.path);
-        });
-      }
+    // common Validation
+    if (!propertyType || !["House", "Land"].includes(propertyType)) {
       return res
         .status(HTTPSTATUS.BAD_REQUEST)
-        .json({ message: "All fields are required" });
+        .json({ message: "Invalid property type" });
     }
 
-    // Validate region existence
-    const existingRegion = await Region.findById(region);
-    if (!existingRegion) {
-      // Clean up files if region is invalid
-      if (req.files) {
-        (req.files as Express.Multer.File[]).forEach((file) => {
-          fs.unlinkSync(file.path);
-        });
+    // base validation
+    if (
+      !rest.name ||
+      !rest.description ||
+      !rest.location ||
+      !rest.price ||
+      !rest.sqft ||
+      !rest.region
+    ) {
+      return res
+        .status(HTTPSTATUS.BAD_REQUEST)
+        .json({ message: "Missing required base fields" });
+    }
+
+    // Type-specific validation
+    if (propertyType === "House") {
+      if (
+        !rest.beds ||
+        !rest.baths ||
+        !rest.furnished ||
+        !rest.propertyDetails ||
+        !rest.features
+      ) {
+        return res
+          .status(HTTPSTATUS.BAD_REQUEST)
+          .json({ message: "Missing required house fields" });
       }
+    }
+
+    // Validate region exists
+    const existingRegion = await Region.findById(rest.region);
+    if (!existingRegion) {
       return res
         .status(HTTPSTATUS.BAD_REQUEST)
         .json({ message: "Invalid region" });
@@ -102,24 +95,25 @@ export const createProperty = asyncHandler(async (req, res) => {
     // Clean up temp files
     files.forEach((file) => fs.unlinkSync(file.path));
 
-    // Create new property
-    const property = new Property({
-      name,
-      description,
-      location,
-      propertyType,
-      price: Number(price),
-      propertyDetails,
-      beds: Number(beds),
-      baths: Number(baths),
-      sqft: Number(sqft),
-      furnished: Boolean(furnished),
-      features,
-      region,
-      images: imageUrls,
-    });
+    // Create property based on type
+    let newProperty;
 
-    const savedProperty = await property.save();
+    if (propertyType === "House") {
+      newProperty = new House({
+        ...rest,
+        beds: Number(rest.beds),
+        baths: Number(rest.baths),
+        furnished: rest.furnished === "true",
+        images: imageUrls,
+      });
+    } else {
+      newProperty = new Land({
+        ...rest,
+        images: imageUrls,
+      });
+    }
+
+    const savedProperty = await newProperty.save();
 
     // Send email to all users about the new property
     const verifiedUsers = await User.find({ isVerified: true }).select("email");
@@ -141,19 +135,10 @@ export const createProperty = asyncHandler(async (req, res) => {
     );
 
     res.status(HTTPSTATUS.CREATED).json({
-      message: "Property created successfully",
+      message: `${propertyType} created successfully`,
       property: savedProperty,
     });
   } catch (error) {
-    // Clean up any remaining files
-    if (req.files) {
-      (req.files as Express.Multer.File[]).forEach((file) => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
-      });
-    }
-
     console.error("Error creating property:", error);
     res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
       message: "Error creating property",
@@ -170,150 +155,85 @@ export const createProperty = asyncHandler(async (req, res) => {
 
 export const updateProperty = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const {
-    name,
-    description,
-    location,
-    propertyType,
-    price,
-    propertyDetails,
-    beds,
-    baths,
-    sqft,
-    region,
-    furnished,
-    features,
-  } = req.body;
+  const updates = req.body;
 
   try {
-    // Validate required fields
-    if (
-      !name ||
-      !description ||
-      !location ||
-      !propertyType ||
-      !price ||
-      !propertyDetails ||
-      !beds ||
-      !baths ||
-      !sqft ||
-      !region ||
-      furnished === undefined ||
-      !features
-    ) {
-      // Clean up uploaded files if validation fails
-      if (req.files) {
-        (req.files as Express.Multer.File[]).forEach((file) => {
-          fs.unlinkSync(file.path);
-        });
-      }
-      return res
-        .status(HTTPSTATUS.BAD_REQUEST)
-        .json({ message: "All fields are required" });
-    }
-
+    const property = await BaseProperty.findById(id);
     // Check property existence
-    const property = await Property.findById(id);
     if (!property) {
-      // Clean up files if property not found
-      if (req.files) {
-        (req.files as Express.Multer.File[]).forEach((file) => {
-          fs.unlinkSync(file.path);
-        });
-      }
       return res
         .status(HTTPSTATUS.NOT_FOUND)
         .json({ message: "Property not found" });
     }
 
-    // Use existing region if not provided in update
-    const regionId = req.body.region || property.region;
+    // Preserve existing region if not provided
+    const regionId = updates.region || property.region;
 
     // Validate region exists
     const existingRegion = await Region.findById(regionId);
     if (!existingRegion) {
-      if (req.files) {
-        (req.files as Express.Multer.File[]).forEach((file) => {
-          fs.unlinkSync(file.path);
-        });
-      }
       return res
         .status(HTTPSTATUS.BAD_REQUEST)
         .json({ message: "Invalid region ID" });
     }
 
-    let newImageUrls = [...property.images];
-    const files = req.files as Express.Multer.File[];
-
-    // Handle image uploads
-    if (files?.length) {
-      try {
-        // Upload new images
-        const uploadPromises = files.map((file) =>
-          cloudinary.uploader.upload(file.path, {
-            folder: "ikukuestate",
-            transformation: [
-              { quality: "auto", fetch_format: "auto" },
-              { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
-            ],
-          })
-        );
-
-        const uploadedImages = await Promise.all(uploadPromises);
-        newImageUrls = [
-          ...property.images,
-          ...uploadedImages.map((img) => img.secure_url),
-        ];
-
-        // Cleanup temp files after successful upload
-        files.forEach((file) => fs.unlinkSync(file.path));
-      } catch (error) {
-        // Cleanup files on upload failure
-        files.forEach((file) => fs.unlinkSync(file.path));
-        console.error("Image upload error:", error);
-        return res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
-          message: "Image upload failed",
-          error: process.env.NODE_ENV === "development" ? error : undefined,
+    // Type-specific validation
+    if (property.propertyType === "House") {
+      if (!updates.beds || !updates.baths || !updates.furnished) {
+        return res.status(HTTPSTATUS.BAD_REQUEST).json({
+          message: "Missing required house fields",
         });
       }
     }
 
-    // Update property data
+    // Handle image updates
+    let imageUrls = property.images;
+    if (req.files?.length) {
+      const uploadPromises = (req.files as Express.Multer.File[]).map((file) =>
+        cloudinary.uploader.upload(file.path, {
+          folder: "ikukuestate",
+          transformation: [
+            { quality: "auto", fetch_format: "auto" },
+            { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
+          ],
+        })
+      );
+
+      const uploadedImages = await Promise.all(uploadPromises);
+      imageUrls = [
+        ...imageUrls,
+        ...uploadedImages.map((img) => img.secure_url),
+      ];
+
+      // Cleanup temp files
+      (req.files as Express.Multer.File[]).forEach((file) =>
+        fs.unlinkSync(file.path)
+      );
+    }
+
+    // Merge updates
     const updatedData = {
-      name,
-      description,
-      location,
-      propertyType,
-      price: Number(price),
-      propertyDetails,
-      beds: Number(beds),
-      baths: Number(baths),
-      sqft: Number(sqft),
-      furnished: Boolean(furnished),
-      features,
-      region,
-      images: newImageUrls,
+      ...updates,
+      region: regionId,
+      images: imageUrls,
+      price: Number(updates.price),
+      sqft: Number(updates.sqft),
     };
 
-    const updatedProperty = await Property.findByIdAndUpdate(id, updatedData, {
-      new: true,
-      runValidators: true,
-    }).populate("region");
+    const updatedProperty = await BaseProperty.findByIdAndUpdate(
+      id,
+      updatedData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).populate("region");
 
     res.status(HTTPSTATUS.OK).json({
       message: "Property updated successfully",
       property: updatedProperty,
     });
   } catch (error) {
-    // Cleanup any remaining files
-    if (req.files) {
-      (req.files as Express.Multer.File[]).forEach((file) => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
-      });
-    }
-
     console.error("Update property error:", error);
     res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
       message: "Error updating property",
@@ -331,17 +251,19 @@ export const updateProperty = asyncHandler(async (req, res) => {
 export const deleteProperty = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const property = await Property.findByIdAndDelete(id).populate("region");
-
+  const property = await BaseProperty.findByIdAndDelete(id);
   if (!property) {
     return res
       .status(HTTPSTATUS.NOT_FOUND)
       .json({ message: "Property not found" });
   }
+  // Extract public IDs from Cloudinary URLs
+  const deletePromises = property.images.map((imageUrl) => {
+    const publicId = imageUrl.split("/").pop()?.split(".")[0];
+    return publicId ? cloudinary.uploader.destroy(publicId) : Promise.resolve();
+  });
 
-  await Promise.all(
-    property.images.map((image) => cloudinary.uploader.destroy(image))
-  );
+  await Promise.allSettled(deletePromises);
 
   res.status(HTTPSTATUS.OK).json({ message: "Property deleted successfully" });
 });
@@ -353,9 +275,8 @@ export const deleteProperty = asyncHandler(async (req, res) => {
  */
 
 export const getAllProperties = asyncHandler(async (req, res) => {
-  const properties = await Property.find().populate("region"); // Populate region if you want to get full region details
-
-  res.status(HTTPSTATUS.OK).json(properties);
+  const allProperties = await BaseProperty.find({});
+  res.status(HTTPSTATUS.OK).json(allProperties);
 });
 
 /*
@@ -367,7 +288,7 @@ export const getAllProperties = asyncHandler(async (req, res) => {
 export const getPropertyById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const property = await Property.findById(id).populate("region");
+  const property = await BaseProperty.findById(id).populate("region");
 
   if (!property) {
     return res
@@ -387,7 +308,7 @@ export const getPropertyById = asyncHandler(async (req, res) => {
 export const getPropertiesByRegion = asyncHandler(async (req, res) => {
   const { regionId } = req.params;
 
-  const properties = await Property.find({ region: regionId }).populate(
+  const properties = await BaseProperty.find({ region: regionId }).populate(
     "region"
   );
 
@@ -401,18 +322,44 @@ export const getPropertiesByRegion = asyncHandler(async (req, res) => {
  */
 
 export const getSimilarProperties = asyncHandler(async (req, res) => {
-  const { region, propertyType } = req.query;
+  const { regionId, propertyType } = req.query;
 
   try {
-    const properties = await Property.find({
-      $or: [
-        { region: new mongoose.Types.ObjectId(region as string) },
-        { propertyType },
-      ],
-    }).limit(6);
+    const properties = await BaseProperty.find({
+      region: new mongoose.Types.ObjectId(regionId as string),
+      propertyType: propertyType,
+    })
+      .limit(6)
+      .populate("region");
 
-    res.status(200).json(properties);
+    res.status(HTTPSTATUS.OK).json(properties);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch similar properties" });
+    console.error("Similar properties error:", error);
+    res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Error fetching similar properties",
+      error: process.env.NODE_ENV === "development" ? error : undefined,
+    });
   }
+});
+
+/*
+ * @route   GET api/admin/properties
+ * @desc    Get all properties in a house
+ * @access  Public
+ */
+
+export const getAllPropertyHouse = asyncHandler(async (req, res) => {
+  const houses = await House.find({});
+  res.status(HTTPSTATUS.OK).json(houses);
+});
+
+/*
+ * @route   GET api/admin/properties
+ * @desc    Get all properties
+ * @access  Public
+ */
+
+export const getAllPropertyLand = asyncHandler(async (req, res) => {
+  const lands = await Land.find({});
+  res.status(HTTPSTATUS.OK).json(lands);
 });

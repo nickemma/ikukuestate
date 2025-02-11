@@ -12,23 +12,23 @@ const CreateProperty = () => {
     name: "",
     description: "",
     location: "",
-    propertyType: "",
-    propertyDetails: "",
+    propertyType: "House", // Default to House
     price: "",
+    sqft: "",
+    region: "",
+    // House-specific fields
     beds: "",
     baths: "",
-    sqft: "",
     furnished: "",
+    propertyDetails: "",
     features: "",
-    region: "",
-    images: [],
   });
 
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
   const [uploadedImages, setUploadedImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]); // Store image preview URLs
-  const [regions, setRegions] = useState([]); // State to store regions
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [regions, setRegions] = useState([]);
 
   // Fetch regions from the backend
   useEffect(() => {
@@ -46,23 +46,31 @@ const CreateProperty = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]:
-        name === "price" ||
-        name === "beds" ||
-        name === "baths" ||
-        name === "sqft"
-          ? Number(value) // Convert to number
-          : value,
-    });
+    // If changing property type, reset type-specific fields
+    if (name === "propertyType") {
+      // Reset house-specific fields when switching types
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        ...(value === "Land" && {
+          beds: "",
+          baths: "",
+          furnished: "",
+          propertyDetails: "",
+          features: "",
+        }),
+      }));
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files).slice(0, 5); // Limit to 5 images
+    const files = Array.from(e.target.files).slice(0, 5);
     setUploadedImages(files);
-
-    // Generate preview URLs for the uploaded files
     const previewUrls = files.map((file) => URL.createObjectURL(file));
     setImagePreviews(previewUrls);
   };
@@ -71,42 +79,56 @@ const CreateProperty = () => {
     e.preventDefault();
     setErrors({});
     setSuccess("");
-    // Convert furnished to boolean
-    const furnishedBoolean = formData.furnished === "Yes"; // "Yes" -> true, "No" -> false
-    // Validate form data
-    if (
-      !formData.name ||
-      !formData.description ||
-      !formData.location ||
-      !formData.propertyType ||
-      !formData.propertyDetails ||
-      !formData.price ||
-      !formData.beds ||
-      !formData.baths ||
-      !formData.sqft ||
-      !formData.region ||
-      formData.furnished === "" ||
-      uploadedImages.length === 0
-    ) {
-      setErrors({ message: "All fields are required" });
+    // Common required fields for all property types
+    const commonFieldsValid =
+      formData.name &&
+      formData.description &&
+      formData.location &&
+      formData.price &&
+      formData.sqft &&
+      formData.region &&
+      uploadedImages.length > 0;
+
+    // House-specific validation
+    const houseFieldsValid =
+      formData.propertyType === "House"
+        ? formData.beds &&
+          formData.baths &&
+          formData.furnished &&
+          formData.propertyDetails &&
+          formData.features
+        : true;
+
+    if (!commonFieldsValid || !houseFieldsValid) {
+      setErrors({
+        message: `Please fill all required ${
+          formData.propertyType === "House" ? "house" : "land"
+        } fields`,
+      });
       return;
     }
 
     // Prepare form data for submission
     const payload = new FormData();
+
+    // Common fields
     payload.append("name", formData.name);
     payload.append("description", formData.description);
     payload.append("location", formData.location);
     payload.append("propertyType", formData.propertyType);
-    payload.append("propertyDetails", formData.propertyDetails);
     payload.append("price", formData.price);
-    payload.append("beds", formData.beds);
-    payload.append("baths", formData.baths);
     payload.append("sqft", formData.sqft);
-    payload.append("furnished", furnishedBoolean);
     payload.append("region", formData.region);
-    payload.append("features", formData.features);
-    uploadedImages.forEach((file) => payload.append("images", file)); // Append images
+    uploadedImages.forEach((file) => payload.append("images", file));
+
+    // House-specific fields
+    if (formData.propertyType === "House") {
+      payload.append("beds", formData.beds);
+      payload.append("baths", formData.baths);
+      payload.append("furnished", formData.furnished === "Yes");
+      payload.append("propertyDetails", formData.propertyDetails);
+      payload.append("features", formData.features);
+    }
 
     try {
       const response = await axios.post(
@@ -122,116 +144,99 @@ const CreateProperty = () => {
       setSuccess(response.data.message);
       navigate("/admin/properties"); // Redirect to properties page
       // Reset form after successful submission
+      // Reset form
       setFormData({
         name: "",
         description: "",
         location: "",
-        propertyType: "",
-        propertyDetails: "",
+        propertyType: "House",
         price: "",
+        sqft: "",
+        region: "",
         beds: "",
         baths: "",
-        sqft: "",
         furnished: "",
+        propertyDetails: "",
         features: "",
-        region: "",
-        images: [],
       });
       setUploadedImages([]);
       setImagePreviews([]); // Clear image previews
       setErrors({});
     } catch (error) {
-      console.error("Failed to create property:", error);
-      setErrors({ message: "Failed to create property. Please try again." });
+      console.error("Creation error:", error);
+      setErrors({
+        message: error.response?.data?.message || "Failed to create property",
+      });
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto p-4 sm:p-6 bg-white shadow-md rounded-lg">
-      <h1 className="text-2xl font-bold mb-4">Create New Property Listing</h1>
+      <h1 className="text-2xl font-bold mb-4">Create New Property</h1>
+
       {errors.message && (
-        <div className="mb-4 text-red-500">{errors.message}</div>
+        <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+          {errors.message}
+        </div>
       )}
-      {success && <p className="text-green-500 text-sm">{success}</p>}
-      <form onSubmit={handleSubmit}>
-        {/* Section 1: Basic Information */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
-          <div className="space-y-4">
-            <input
-              type="text"
-              name="name"
-              placeholder="Property Name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-            <textarea
-              name="description"
-              placeholder="Description"
-              value={formData.description}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-            <input
-              type="text"
-              name="location"
-              placeholder="Location"
-              value={formData.location}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-            <input
-              type="text"
-              name="propertyDetails"
-              placeholder="Property Details"
-              value={formData.propertyDetails}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
+      {success && (
+        <div className="mb-4 p-2 bg-green-100 text-green-700 rounded">
+          {success}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Property Type Selector */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Property Type
+          </label>
+          <select
+            name="propertyType"
+            value={formData.propertyType}
+            onChange={handleChange}
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-red-500"
+          >
+            <option value="House">House</option>
+            <option value="Land">Land</option>
+          </select>
         </div>
 
-        {/* Section 2: Property Details */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Property Details</h2>
+        {/* Common Fields */}
+
+        <div className="space-y-4">
+          <input
+            type="text"
+            name="name"
+            placeholder="Property Name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          />
+          <textarea
+            name="description"
+            placeholder="Description"
+            value={formData.description}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            rows={3}
+            required
+          />
+          <input
+            type="text"
+            name="location"
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input
-              type="text"
-              name="propertyType"
-              placeholder="Property Type"
-              value={formData.propertyType}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
             <input
               type="number"
               name="price"
               placeholder="Price"
               value={formData.price}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-            <input
-              type="number"
-              name="beds"
-              placeholder="Beds"
-              value={formData.beds}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-            <input
-              type="number"
-              name="baths"
-              placeholder="Baths"
-              value={formData.baths}
               onChange={handleChange}
               className="w-full p-2 border rounded"
               required
@@ -245,6 +250,33 @@ const CreateProperty = () => {
               className="w-full p-2 border rounded"
               required
             />
+          </div>
+        </div>
+
+        {/* House-Specific Fields */}
+        {formData.propertyType === "House" && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input
+                type="number"
+                name="beds"
+                placeholder="Bedrooms"
+                value={formData.beds}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+                required
+              />
+              <input
+                type="number"
+                name="baths"
+                placeholder="Bathrooms"
+                value={formData.baths}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+                required
+              />
+            </div>
+
             <select
               name="furnished"
               value={formData.furnished}
@@ -256,13 +288,17 @@ const CreateProperty = () => {
               <option value="Yes">Yes</option>
               <option value="No">No</option>
             </select>
-          </div>
-        </div>
 
-        {/* Section 3: Features and Region */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Features and Region</h2>
-          <div className="space-y-4">
+            <input
+              type="text"
+              name="propertyDetails"
+              placeholder="Property Details"
+              value={formData.propertyDetails}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+
             <input
               type="text"
               name="features"
@@ -270,27 +306,37 @@ const CreateProperty = () => {
               value={formData.features}
               onChange={handleChange}
               className="w-full p-2 border rounded"
-            />
-            <select
-              name="region"
-              value={formData.region}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
               required
-            >
-              <option value="">Select Region</option>
-              {regions?.map((region) => (
-                <option key={region._id} value={region._id}>
-                  {region.city}
-                </option>
-              ))}
-            </select>
+            />
           </div>
+        )}
+
+        {/* Region Selector */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Region
+          </label>
+          <select
+            name="region"
+            value={formData.region}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          >
+            <option value="">Select Region</option>
+            {regions.map((region) => (
+              <option key={region._id} value={region._id}>
+                {region.city}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Section 4: Upload Images */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Upload Images</h2>
+        {/* Image Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Upload Images (Max 5)
+          </label>
           <input
             type="file"
             name="images"
@@ -300,22 +346,21 @@ const CreateProperty = () => {
             className="w-full p-2 border rounded"
             required
           />
-          <div className="mt-4 flex flex-wrap gap-4">
-            {imagePreviews.map((previewUrl, index) => (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {imagePreviews.map((preview, index) => (
               <img
                 key={index}
-                src={previewUrl}
-                alt={`Uploaded ${index}`}
+                src={preview}
+                alt={`Preview ${index}`}
                 className="w-20 h-20 object-cover rounded"
               />
             ))}
           </div>
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
-          className="text-xl flex items-center mx-auto mb-12 bg-red-500 text-white p-2 rounded hover:bg-red-600"
+          className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-colors"
         >
           Create Property
         </button>

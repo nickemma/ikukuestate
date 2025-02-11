@@ -7,6 +7,8 @@ import {
   getPropertiesByRegion,
   getAllProperties,
   getSimilarProperties,
+  getAllPropertyHouse,
+  getAllPropertyLand,
 } from "../controllers/property.controller";
 import { upload } from "../middleware/multer";
 import { protect, admin } from "../middleware/auth.middleware";
@@ -23,6 +25,12 @@ router.post(
 );
 // @route GET /api/v1/admin/properties
 router.get("/properties", getAllProperties);
+
+// @route GET /api/v1/admin/properties/houses
+router.get("/properties/houses", getAllPropertyHouse);
+
+// @route GET /api/v1/admin/properties/lands
+router.get("/properties/lands", getAllPropertyLand);
 
 // @route GET /api/v1/admin/properties
 router.get("/properties/region/:regionId", getPropertiesByRegion);

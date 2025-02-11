@@ -502,26 +502,49 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
     throw new Error("Refresh token is required");
   }
 
-  // Verify refresh token
-  const decoded = jwt.verify(
-    refreshToken,
-    config.JWT.JWT_SECRET
-  ) as TokenPayload;
-  const user = await User.findById(decoded.id);
+  try {
+    // Verify refresh token
+    const decoded = jwt.verify(
+      refreshToken,
+      config.JWT.JWT_SECRET
+    ) as TokenPayload;
 
-  if (!user) {
-    res.status(HTTPSTATUS.BAD_REQUEST);
-    throw new Error("Invalid refresh token");
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      res.status(HTTPSTATUS.BAD_REQUEST);
+      throw new Error("Invalid refresh token");
+    }
+
+    // Remove the refresh token
+    user.refreshTokens.pull({ token: refreshToken });
+    await user.save();
+
+    // Clear cookies
+    res.clearCookie("accessToken", {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+    res.clearCookie("refreshToken", {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    res.status(HTTPSTATUS.OK).json({ message: "Logout successful" });
+  } catch (error) {
+    // Handle invalid/expired refresh tokens gracefully
+    res.clearCookie("accessToken", {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+    res.clearCookie("refreshToken", {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    res.status(HTTPSTATUS.OK).json({ message: "Session cleared" });
   }
-
-  // Remove the refresh token from the user's document using Mongoose's `pull` method
-  user.refreshTokens.pull({ token: refreshToken }); // Remove the token object matching the `token` field
-  await user.save();
-
-  // Clear cookies
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
-
-  // Respond with success message
-  res.status(HTTPSTATUS.OK).json({ message: "Logout successful" });
 });

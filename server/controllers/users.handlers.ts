@@ -1,5 +1,5 @@
 import { HTTPSTATUS } from "../config/http.config";
-import propertyModel from "../database/models/property.model";
+import BaseProperty from "../database/models/property.model";
 import User from "../database/models/user.model";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { AuthenticatedRequest } from "types/express";
@@ -16,7 +16,7 @@ export const addFavorite = asyncHandler(
     const { propertyId } = req.body;
     const userId = req.user?.id;
 
-    const property = await propertyModel.findById(propertyId);
+    const property = await BaseProperty.findById(propertyId);
 
     if (!property) {
       return res

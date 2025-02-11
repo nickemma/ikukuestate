@@ -5,7 +5,7 @@ import { API_URL } from "../config/Api";
 import LoadingSpinner from "./LoadingSpinner";
 import ErrorMessage from "./ErrorMessage";
 
-const DiscoverListing = () => {
+const DiscoverListingLand = () => {
   const [visibleListings, setVisibleListings] = useState(6);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,10 +18,10 @@ const DiscoverListing = () => {
   useEffect(() => {
     const fetchHouses = async () => {
       try {
-        const response = await axios.get(`${API_URL}/admin/properties/houses`);
+        const response = await axios.get(`${API_URL}/admin/properties/lands`);
         setProperties(response.data);
       } catch (err) {
-        setError("Failed to load houses", err);
+        setError("Failed to load lands", err);
       } finally {
         setLoading(false);
       }
@@ -38,14 +38,14 @@ const DiscoverListing = () => {
       {/* Featured Houses Header */}
       <div className="text-center mb-10">
         <div className="mb-4">
-          <h2 className="text-2xl text-red-500">FEATURED HOUSES</h2>
+          <h2 className="text-2xl text-red-500">FEATURED LANDS</h2>
           <h3 className="text-2xl font-medium italic">
-            We&apos;ll find the home, you&apos;ll write the stories
+            We&apos;ll find the land, you&apos;ll build the stories
           </h3>
         </div>
         <Link to="/properties">
           <button className="h-10 bg-red-600 px-6 text-white text-xl rounded-md">
-            Discover Houses
+            Discover Lands
           </button>
         </Link>
       </div>
@@ -54,7 +54,7 @@ const DiscoverListing = () => {
       {properties.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-600 text-xl">
-            No houses available at the moment
+            No lands available at the moment
           </p>
         </div>
       ) : (
@@ -110,4 +110,4 @@ const DiscoverListing = () => {
   );
 };
 
-export default DiscoverListing;
+export default DiscoverListingLand;

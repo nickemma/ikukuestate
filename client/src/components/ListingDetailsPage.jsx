@@ -34,10 +34,9 @@ const ListingDetailsPage = () => {
       try {
         const response = await axios.get(`${API_URL}/admin/properties/${id}`);
         setProperty(response.data);
-
         // Fetch similar properties based on region or property type
         const similarResponse = await axios.get(
-          `${API_URL}/admin/properties/similar?region=${response.data.region._id}&propertyType=${response.data.propertyType}`
+          `${API_URL}/admin/properties/similar?regionId=${response.data.region._id}&propertyType=${response.data.propertyType}`
         );
         setSimilarProperties(similarResponse.data);
       } catch (err) {
@@ -99,6 +98,7 @@ const ListingDetailsPage = () => {
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
+    draggable: true,
     responsive: [
       {
         breakpoint: 640,
@@ -199,45 +199,67 @@ const ListingDetailsPage = () => {
       {/* Flex Container for Description and Schedule Form */}
       <div className="flex flex-col md:flex-row mb-8">
         {/* Description and Features */}
-        <div className="mb-8 px-8 md:w-1/2">
-          <div className="flex flex-wrap justify-start mb-8">
-            <span className="flex items-center m-3">
-              <FaBed className="mr-1 text-3xl" />
-              <b className="text-lg">{property?.beds}</b>
-              <span className="ml-1 text-gray-700">Beds</span>
-            </span>
-            <span className="flex items-center m-3">
-              <FaBath className="mr-1 text-3xl" />
-              <b className="text-lg">{property?.baths}</b>
-              <span className="ml-1 text-gray-700">Baths</span>
-            </span>
-            <span className="flex items-center m-3">
-              <FaVectorSquare className="mr-1 text-3xl" />
-              <b className="text-lg">{property?.sqft.toLocaleString()}</b>
-              <span className="ml-1 text-gray-700">Sqft.</span>
-            </span>
-            <span className="flex items-center m-3">
-              <FaHome className="mr-1 text-3xl" />
-              <b className="text-lg">{property?.propertyType}</b>
-              <span className="ml-1 text-gray-700">Type</span>
-            </span>
+        {/* Conditionally render icons for House */}
+        {property?.propertyType === "House" && (
+          <div className="mb-8 px-8 md:w-1/2">
+            <div className="flex flex-wrap justify-start mb-8">
+              <span className="flex items-center m-3">
+                <FaBed className="mr-1 text-3xl" />
+                <b className="text-lg">{property?.beds}</b>
+                <span className="ml-1 text-gray-700">Beds</span>
+              </span>
+              <span className="flex items-center m-3">
+                <FaBath className="mr-1 text-3xl" />
+                <b className="text-lg">{property?.baths}</b>
+                <span className="ml-1 text-gray-700">Baths</span>
+              </span>
+              <span className="flex items-center m-3">
+                <FaVectorSquare className="mr-1 text-3xl" />
+                <b className="text-lg">{property?.sqft.toLocaleString()}</b>
+                <span className="ml-1 text-gray-700">Sqft.</span>
+              </span>
+              <span className="flex items-center m-3">
+                <FaHome className="mr-1 text-3xl" />
+                <b className="text-lg">{property?.propertyType}</b>
+              </span>
+            </div>
+
+            <h2 className="text-xl text-red-600 font-semibold mb-4">
+              Property Description
+            </h2>
+            <p className="text-gray-700 mb-4">{property?.description}</p>
+            <h2 className="text-xl text-red-600 font-semibold mb-4">
+              Property Details
+            </h2>
+            <p className="text-gray-700 mb-4">{property?.propertyDetails}</p>
+
+            <h3 className="text-lg font-semibold mb-2 text-red-600">
+              Property Features
+            </h3>
+            <p>{property?.features}</p>
           </div>
+        )}
+        {/* For Land, you can add specific details if needed */}
+        {property?.propertyType === "Land" && (
+          <>
+            <div className="flex flex-wrap justify-start mb-8">
+              <span className="flex items-center m-3">
+                <FaHome className="mr-1 text-3xl" />
+                <b className="text-lg">{property?.propertyType}</b>
+              </span>
+              <span className="flex items-center m-3">
+                <FaVectorSquare className="mr-1 text-3xl" />
+                <b className="text-lg">{property?.sqft.toLocaleString()}</b>
+                <span className="ml-1 text-gray-700">Sqft.</span>
+              </span>
+            </div>
 
-          <h2 className="text-xl text-red-600 font-semibold mb-4">
-            Property Description
-          </h2>
-          <p className="text-gray-700 mb-4">{property?.description}</p>
-          <h2 className="text-xl text-red-600 font-semibold mb-4">
-            Property Details
-          </h2>
-          <p className="text-gray-700 mb-4">{property?.propertyDetails}</p>
-
-          <h3 className="text-lg font-semibold mb-2 text-red-600">
-            Property Features
-          </h3>
-          <p>{property?.features}</p>
-        </div>
-
+            <h2 className="text-xl text-red-600 font-semibold mb-4">
+              Property Description
+            </h2>
+            <p className="text-gray-700 mb-4">{property?.description}</p>
+          </>
+        )}
         {/* Schedule a Tour Form */}
         <div className="md:w-1/2">
           <h2 className="text-xl font-semibold text-red-600 mb-4">
