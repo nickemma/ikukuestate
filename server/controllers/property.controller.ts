@@ -2,17 +2,14 @@ import fs from "fs";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { HTTPSTATUS } from "../config/http.config";
 import { v2 as cloudinary } from "cloudinary";
-import { Resend } from "resend";
 import { newListingTemplate } from "../mailer/template";
-import { config } from "../config/app.config";
 import User from "../database/models/user.model";
 import BaseProperty from "../database/models/property.model";
 import Region from "../database/models/region.model";
 import mongoose from "mongoose";
 import { House } from "../database/models/house.model";
 import { Land } from "../database/models/land.model";
-
-const resend = new Resend(config.RESEND_API_KEY);
+import { sendMail } from "../mailer/sendmail";
 
 /*
  * @route   POST api/admin/properties
@@ -117,20 +114,24 @@ export const createProperty = asyncHandler(async (req, res) => {
 
     // Send email to all users about the new property
     const verifiedUsers = await User.find({ isVerified: true }).select("email");
-    const notificationUrl = `https://ikukuestate.vercel.app/properties/${savedProperty._id}`;
+    const notificationUrl = `https://ikukuestate.vercel.app/api/v1/admin/properties/${savedProperty._id}`;
+
+    // Get email template
+    const emailTemplate = newListingTemplate(notificationUrl);
 
     // Use Promise.all for parallel execution
     await Promise.all(
       verifiedUsers.map(async (user) => {
-        await resend.emails.send({
-          from: "Admin <onboarding@resend.dev>",
-          to: user.email,
-          subject: "New Property Listing Available",
-          html: newListingTemplate(
-            notificationUrl,
-            JSON.stringify(savedProperty)
-          ).html,
-        });
+        try {
+          await sendMail(
+            user.email,
+            emailTemplate.subject,
+            emailTemplate.text,
+            emailTemplate.html
+          );
+        } catch (emailError) {
+          console.error(`Failed to send email to ${user.email}:`, emailError);
+        }
       })
     );
 

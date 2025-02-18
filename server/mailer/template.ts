@@ -143,3 +143,37 @@ export const bookingAppointmentTemplate = (
     </body></html>
   `,
 });
+
+// utils/emailTemplates.ts
+export const tourConfirmationTemplate = (
+  userName: string,
+  tourDetails: string,
+  brandColor: string = "#fc766a"
+) => ({
+  subject: "Your Property Tour Has Been Scheduled!",
+  text: `Hi ${userName}, your tour has been scheduled. Details: ${tourDetails}`,
+  html: `
+    <html><head><style>
+      /* Your existing CSS styles */
+      body, html { margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333333; }
+      .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); }
+      .header { background-color: ${brandColor}; font-weight:bold; font-size: 24px; color: #ffffff; padding: 20px; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+      .content { padding: 20px; text-align: center; }
+      .button { background-color: ${brandColor}; color: #fff!important; }
+    </style></head><body>
+      <div class="container">
+        <div class="header">Ikuku's Property</div>
+        <div class="content">
+          <h1>Tour Scheduled Successfully!</h1>
+          <p>Hi ${userName},</p>
+          <p>Your property tour request has been received. We'll contact you shortly to confirm details.</p>
+          <p><strong>Your Message:</strong> ${tourDetails}</p>
+          <p>Need to make changes? Reply to this email!</p>
+        </div>
+        <div class="footer">
+          <p>Thank you for choosing Ikuku's Property!</p>
+        </div>
+      </div>
+    </body></html>
+  `,
+});

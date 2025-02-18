@@ -6,13 +6,15 @@ import { config } from "../config/app.config";
 import { asyncHandler } from "../middleware/asyncHandler";
 import User from "../database/models/user.model";
 import { HTTPSTATUS } from "../config/http.config";
-import { Resend } from "resend";
-import { verifyEmailTemplate, passwordResetTemplate } from "../mailer/template";
+import {
+  verifyEmailTemplate,
+  passwordResetTemplate,
+  tourConfirmationTemplate,
+} from "../mailer/template";
 
 import { generateTokens } from "../util/generateTokens";
 import { AuthenticatedRequest } from "types/express";
-
-const resend = new Resend(config.RESEND_API_KEY);
+import { sendMail } from "../mailer/sendmail";
 
 interface TokenPayload {
   id: string;
@@ -62,14 +64,17 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     role: newUser.role,
   });
 
-  const verificationUrl = `https://ikukuestate.vercel.app/verify-email/${verificationToken}`;
+  const verificationUrl = `https://ikukuestate.vercel.app/api/v1/auth/verify-email/${verificationToken}`;
 
-  await resend.emails.send({
-    from: "Admin <onboarding@resend.dev>",
-    to: [newUser.email],
-    subject: "Verify Your Email Address",
-    html: verifyEmailTemplate(verificationUrl).html,
-  });
+  const emailTemplate = verifyEmailTemplate(verificationUrl);
+
+  // Send email via Nodemailer
+  await sendMail(
+    newUser.email,
+    emailTemplate.subject,
+    emailTemplate.text,
+    emailTemplate.html
+  );
 
   // Save refresh token to the user's document
   newUser.refreshTokens.push({
@@ -325,17 +330,15 @@ export const forgotPassword = asyncHandler(
 
     // Send reset email
     const resetUrl = `https://ikukuestate.vercel.app/reset-password?token=${resetToken}`;
-    const { error } = await resend.emails.send({
-      from: "Admin <onboarding@resend.dev>",
-      to: [user.email],
-      subject: "Reset your password",
-      html: passwordResetTemplate(resetUrl).html,
-    });
+    const passwordTemplate = passwordResetTemplate(resetUrl);
 
-    if (error) {
-      res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR);
-      throw new Error("Failed to send reset email");
-    }
+    // Send email via Nodemailer
+    await sendMail(
+      user.email,
+      passwordTemplate.subject,
+      passwordTemplate.text,
+      passwordTemplate.html
+    );
 
     res.status(HTTPSTATUS.OK).json({ message: "Password reset email sent" });
   }
@@ -411,36 +414,60 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
  * @access  Public
  */
 
+// controllers/tourController.ts
 export const scheduleTour = asyncHandler(async (req, res) => {
   const { firstName, lastName, email, phone, message } = req.body;
 
-  // Validate input fields
+  // Validate input
   if (!firstName || !lastName || !email) {
     res.status(HTTPSTATUS.BAD_REQUEST);
-    throw new Error("Please provide all required fields.");
+    throw new Error("First name, last name, and email are required.");
   }
 
-  // Prepare email content
-  const emailContent = `
-    <h1>New Property Tour Scheduled</h1>
-    <p><strong>Name:</strong> ${firstName} ${lastName}</p>
+  // Prepare emails
+  const userFullName = `${firstName} ${lastName}`;
+
+  // --- Email 1: Confirmation to User ---
+  const userEmailTemplate = tourConfirmationTemplate(
+    userFullName,
+    message || "No additional notes"
+  );
+
+  // --- Email 2: Notification to Admin ---
+  const adminEmailContent = `
+    <h1>New Tour Request</h1>
+    <p><strong>Name:</strong> ${userFullName}</p>
     <p><strong>Email:</strong> ${email}</p>
     <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
     <p><strong>Message:</strong> ${message || "No additional notes"}</p>
   `;
 
-  // Send email using Resend
-  await resend.emails.send({
-    from: "Admin <onboarding@resend.dev>",
-    to: "nicholasemmanuel321@gmail.com",
-    subject: `Tour Scheduled by ${firstName} ${lastName}`,
-    html: emailContent,
-  });
+  try {
+    // Send both emails
+    await Promise.all([
+      // User confirmation
+      sendMail(
+        email,
+        userEmailTemplate.subject,
+        userEmailTemplate.text,
+        userEmailTemplate.html
+      ),
+      // Admin notification
+      sendMail(
+        "ikukutechproperty@gmail.com", // Replace with config.ADMIN_EMAIL if needed
+        `New Tour Request: ${userFullName}`,
+        `New tour request from ${userFullName}. Check the HTML email for details.`,
+        adminEmailContent
+      ),
+    ]);
 
-  // Respond to the client
-  res.status(HTTPSTATUS.OK).json({
-    message: "Tour scheduled successfully. Email sent to the admin.",
-  });
+    res.status(HTTPSTATUS.OK).json({
+      message: "Tour request submitted. Check your email for confirmation.",
+    });
+  } catch (error) {
+    console.error("Email failed:", error);
+    throw new Error("Failed to submit tour request. Please try again.");
+  }
 });
 
 // Refresh access token
